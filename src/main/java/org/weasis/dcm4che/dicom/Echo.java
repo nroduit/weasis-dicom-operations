@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Nicolas Roduit.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Nicolas Roduit - initial API and implementation
+ ******************************************************************************/
 package org.weasis.dcm4che.dicom;
 
 import java.io.IOException;
@@ -91,9 +101,4 @@ public class Echo {
         return true;
     }
 
-    public static void main(String[] args) {
-        Echo.echo("DCMECHO", new DicomNode("DCM4CHEE", "scotty.hcuge.ch", 11112));
-        // Echo.echoTLS("BAAL", "baal.hcuge.ch", 2762, new EncryptionTLS(EncryptionTLS.TLS_3DSE,
-        // "D:\\Temp\\tls\\baal\\baal.jks", "uinpacs2008", "D:\\Temp\\tls\\baal\\trust.jks", "uinpacs2008"));
-    }
 }

@@ -1,9 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Nicolas Roduit.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Nicolas Roduit - initial API and implementation
+ ******************************************************************************/
 package org.weasis.dcm4che.dicom;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
@@ -379,22 +388,4 @@ public class Manifest {
         return true;
     }
 
-    public static void main(String[] args) throws Exception {
-        Properties pacsProperties = new Properties();
-        String wadoQueriesURL = pacsProperties.getProperty("pacs.wado.url", "http://localhost:8080/wado");
-        String pacsAET = pacsProperties.getProperty("pacs.aet", "DCM4CHEE");
-        String pacsHost = pacsProperties.getProperty("pacs.host", "localhost");
-        int pacsPort = Integer.parseInt(pacsProperties.getProperty("pacs.port", "11112"));
-
-        String componentAET = pacsProperties.getProperty("aet", "WEASIS");
-        List<Patient> patients =
-            Manifest.buildFromStudyInstanceUID(new DicomNode(pacsAET, pacsHost, pacsPort), componentAET,
-                "1.3.46.670589.11.18623.5.0.5848.2011011811523495084");
-
-        patients = Manifest.buildFromPatientID(new DicomNode(pacsAET, pacsHost, pacsPort), componentAET, "97026728");
-
-        System.out.print(patients);
-        // appDesk.addApplicationArg("$dicom:get -w " + wadoQueryFile);
-
-    }
 }

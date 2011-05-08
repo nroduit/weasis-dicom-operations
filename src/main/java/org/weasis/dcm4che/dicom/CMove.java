@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2011 Nicolas Roduit.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ * 
+ * Contributors:
+ *     Nicolas Roduit - initial API and implementation
+ ******************************************************************************/
 package org.weasis.dcm4che.dicom;
 
 import java.io.IOException;
@@ -184,14 +194,4 @@ public class CMove {
         return true;
     }
 
-    public static void main(String[] args) {
-        // TODO make test class
-        // RetrieveData data = new RetrieveData(QueryRetrieveLevel.SERIES);
-        // data.addMatchingKey(Tag.StudyInstanceUID, "2.16.840.1.113669.632.20.1211.10000907974");
-        // data.addMatchingKey(Tag.SeriesInstanceUID, "1.3.46.670589.11.8743.5.0.15292.2009051907453803369");
-        // CMove.cmove(new DicomNode("PACSARCH", "pacsarch.hcuge.ch", 4444), "HERCULE", "HERCULE", data);
-
-        CMove.cmove(new DicomNode("PACSARCH", "pacsarch.hcuge.ch", 4444), "HERCULE", "HERCULE", "97137201",
-            "2.16.840.1.113669.632.20.1211.10000907974");
-    }
 }
