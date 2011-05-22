@@ -39,8 +39,8 @@ public class TagElement {
         new TagElement(0x0020000E, "Series Instance UID", TagType.String);
     public final static TagElement StudyID = new TagElement(0x00200010, "Study ID", TagType.String);
     public final static TagElement InstanceNumber = new TagElement(0x00200013, "Instance Number", TagType.Integer);
-    public static final TagElement ImageOrientationPatient =
-        new TagElement(0x00200037, "Image Orientation", TagType.DoubleArray);
+    public static final TagElement ImageOrientationPatient = new TagElement(0x00200037, "Image Orientation",
+        TagType.DoubleArray);
     public final static TagElement SliceLocation = new TagElement(0x00201041, "Slice Location", TagType.Float);
 
     public final static TagElement SeriesDescription = new TagElement(0x0008103E, "Series Description", TagType.String);
@@ -52,8 +52,8 @@ public class TagElement {
     public final static TagElement AcquisitionTime = new TagElement(0x00080032, "Acquisition Time", TagType.Time);
     public final static TagElement AccessionNumber = new TagElement(0x00080050, "Accession Number", TagType.String);
     public final static TagElement Modality = new TagElement(0x00080060, "Modality", TagType.String);
-    public final static TagElement ReferringPhysicianName =
-        new TagElement(0x00080090, "Referring Physician Name", TagType.String);
+    public final static TagElement ReferringPhysicianName = new TagElement(0x00080090, "Referring Physician Name",
+        TagType.String);
     public final static TagElement StudyDescription = new TagElement(0x00081030, "Study Description", TagType.String);
 
     public static final TagElement PixelData = new TagElement(0x7FE00010, "Pixel Data", TagType.Text);
@@ -62,18 +62,18 @@ public class TagElement {
     public static final TagElement WindowCenter = new TagElement(0x00281050, "Window Center", TagType.Float);
     public static final TagElement RescaleSlope = new TagElement(0x00281053, "Rescale Slope", TagType.Float);
     public static final TagElement RescaleIntercept = new TagElement(0x00281052, "Rescale Intercept", TagType.Float);
-    public static final TagElement SmallestImagePixelValue =
-        new TagElement(0x00280106, "Smallest ImagePixel Value", TagType.Float);
-    public static final TagElement LargestImagePixelValue =
-        new TagElement(0x00200013, "Largest Image PixelValue", TagType.Float);
-    public static final TagElement PixelPaddingValue =
-        new TagElement(0x00280120, "Pixel Padding Value", TagType.Integer);
-    public static final TagElement PixelPaddingRangeLimit =
-        new TagElement(0x00280121, "Pixel Padding Range Limit", TagType.Integer);
+    public static final TagElement SmallestImagePixelValue = new TagElement(0x00280106, "Smallest ImagePixel Value",
+        TagType.Float);
+    public static final TagElement LargestImagePixelValue = new TagElement(0x00200013, "Largest Image PixelValue",
+        TagType.Float);
+    public static final TagElement PixelPaddingValue = new TagElement(0x00280120, "Pixel Padding Value",
+        TagType.Integer);
+    public static final TagElement PixelPaddingRangeLimit = new TagElement(0x00280121, "Pixel Padding Range Limit",
+        TagType.Integer);
     public static final TagElement SamplesPerPixel = new TagElement(0x00280107, "Samples Per Pixel", TagType.Integer);
     public static final TagElement MonoChrome = new TagElement("MonoChrome", TagType.Boolean);
-    public static final TagElement PhotometricInterpretation =
-        new TagElement(0x00280004, "Photometric Interpretation", TagType.String);
+    public static final TagElement PhotometricInterpretation = new TagElement(0x00280004, "Photometric Interpretation",
+        TagType.String);
 
     protected final int id;
     protected final String name;
@@ -106,7 +106,7 @@ public class TagElement {
     }
 
     public String getTagName() {
-        return name.replaceAll(" ", "");
+        return name.replace(" ", "");
     }
 
     public TagType getType() {
