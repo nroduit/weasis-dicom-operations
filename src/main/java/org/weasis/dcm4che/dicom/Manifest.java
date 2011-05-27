@@ -39,9 +39,8 @@ public class Manifest {
 
     public static List<Patient> buildFromPatientID(DicomNode nodeSource, String callingAet, String patientID)
         throws Exception {
-        if (patientID == null) {
-            throw new IllegalArgumentException("patientID cannot be null");
-        }
+        if (patientID == null || patientID.trim().equals(""))
+            return null;
         String[] matchingKeys = { Integer.toHexString(Tag.PatientID), patientID };
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientBirthDate),
@@ -92,10 +91,22 @@ public class Manifest {
 
     public static List<Patient> buildFromStudyInstanceUID(DicomNode nodeSource, String callingAet,
         String studyInstanceUID) throws Exception {
-        if (studyInstanceUID == null) {
-            throw new IllegalArgumentException("studyInstanceUID cannot be null");
-        }
+        if (studyInstanceUID == null || studyInstanceUID.trim().equals(""))
+            return null;
         String[] matchingKeys = { Integer.toHexString(Tag.StudyInstanceUID), studyInstanceUID };
+        return buildFromStudylevel(nodeSource, callingAet, matchingKeys, Tag.StudyInstanceUID);
+    }
+
+    public static List<Patient> buildFromStudyAccessionNumber(DicomNode nodeSource, String callingAet,
+        String accessionNumber) throws Exception {
+        if (accessionNumber == null || accessionNumber.trim().equals(""))
+            return null;
+        String[] matchingKeys = { Integer.toHexString(Tag.AccessionNumber), accessionNumber };
+        return buildFromStudylevel(nodeSource, callingAet, matchingKeys, Tag.AccessionNumber);
+    }
+
+    private static List<Patient> buildFromStudylevel(DicomNode nodeSource, String callingAet, String[] matchingKeys,
+        int tag) throws Exception {
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientID),
                 Integer.toHexString(Tag.PatientBirthDate), Integer.toHexString(Tag.PatientSex),
@@ -106,7 +117,7 @@ public class Manifest {
         if (studies != null && studies.size() > 0) {
             Patient patient = getPatient(patientList, studies.get(0));
             for (DicomObject studyDataSet : studies) {
-                if (studyInstanceUID.equals(studyDataSet.getString(Tag.StudyInstanceUID))) {
+                if (matchingKeys[1].equals(studyDataSet.getString(tag))) {
                     Study study = getStudy(patient, studyDataSet);
                     List<DicomObject> series =
                         query(nodeSource, null, callingAet, QueryRetrieveLevel.SERIES, true, matchingKeys,
@@ -140,9 +151,8 @@ public class Manifest {
 
     public static List<Patient> buildFromSeriesInstanceUID(DicomNode nodeSource, String callingAet,
         String seriesInstanceUID) throws Exception {
-        if (seriesInstanceUID == null) {
-            throw new IllegalArgumentException("seriesInstanceUID cannot be null");
-        }
+        if (seriesInstanceUID == null || seriesInstanceUID.trim().equals(""))
+            return null;
         String[] matchingKeys = { Integer.toHexString(Tag.SeriesInstanceUID), seriesInstanceUID };
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientID),
@@ -183,9 +193,8 @@ public class Manifest {
 
     public static List<Patient> buildFromSopInstanceUID(DicomNode nodeSource, String callingAet, String sopInstanceUID)
         throws Exception {
-        if (sopInstanceUID == null) {
-            throw new IllegalArgumentException("sopInstanceUID cannot be null");
-        }
+        if (sopInstanceUID == null || sopInstanceUID.trim().equals(""))
+            return null;
         String[] matchingKeys = { Integer.toHexString(Tag.SOPInstanceUID), sopInstanceUID };
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientID),
@@ -218,14 +227,12 @@ public class Manifest {
 
     protected static Patient getPatient(final List<Patient> patientList, final DicomObject patientDataset)
         throws Exception {
-        if (patientDataset == null) {
+        if (patientDataset == null)
             throw new IllegalArgumentException("patientDataset cannot be null");
-        }
         String uid = patientDataset.getString(Tag.PatientID);
         for (Patient p : patientList) {
-            if (p.getPatientID().equals(uid)) {
+            if (p.getPatientID().equals(uid))
                 return p;
-            }
         }
         Patient p = new Patient(uid);
         p.setPatientName(patientDataset.getString(Tag.PatientName));
@@ -237,9 +244,8 @@ public class Manifest {
     }
 
     protected static Study getStudy(Patient patient, final DicomObject studyDataset) throws Exception {
-        if (studyDataset == null) {
+        if (studyDataset == null)
             throw new IllegalArgumentException("studyDataset cannot be null");
-        }
         String uid = studyDataset.getString(Tag.StudyInstanceUID);
         Study s = patient.getStudy(uid);
         if (s == null) {
@@ -256,9 +262,8 @@ public class Manifest {
     }
 
     protected static Series getSeries(Study study, final DicomObject seriesDataset) throws Exception {
-        if (seriesDataset == null) {
+        if (seriesDataset == null)
             throw new IllegalArgumentException("seriesDataset cannot be null");
-        }
         String uid = seriesDataset.getString(Tag.SeriesInstanceUID);
         Series s = study.getSeries(uid);
         if (s == null) {
@@ -276,9 +281,8 @@ public class Manifest {
         List<DicomObject> result = new ArrayList<DicomObject>();
         DcmQR dcmqr = new DcmQR(callingAet);
         boolean init = initQuery(nodeSource, tls, dcmqr, level, relationQR, matchingKeys, returnKeys);
-        if (!init) {
+        if (!init)
             return null;
-        }
         try {
             if (dcmqr.isCFind()) {
                 long t2 = System.currentTimeMillis();
@@ -306,9 +310,8 @@ public class Manifest {
 
     private static boolean initQuery(DicomNode nodeSource, EncryptionTLS tls, DcmQR dcmqr, QueryRetrieveLevel level,
         boolean relationQR, String[] matchingKeys, String[] returnKeys) {
-        if (nodeSource == null && matchingKeys == null || (matchingKeys.length % 2) != 0) {
+        if (nodeSource == null && matchingKeys == null || (matchingKeys.length % 2) != 0)
             throw new IllegalArgumentException();
-        }
         if (level == null) {
             level = QueryRetrieveLevel.STUDY;
         }

@@ -30,9 +30,8 @@ public class Series implements XmlDescription {
     private int wadoCompression = 0;
 
     public Series(String seriesInstanceUID) {
-        if (seriesInstanceUID == null) {
+        if (seriesInstanceUID == null)
             throw new IllegalArgumentException("seriesInstanceUID is null");
-        }
         this.seriesInstanceUID = seriesInstanceUID;
         sopInstancesList = new ArrayList<SOPInstance>();
     }
@@ -93,6 +92,10 @@ public class Series implements XmlDescription {
 
     public void setModality(String modality) {
         this.modality = modality;
+    }
+
+    public ArrayList<SOPInstance> getSopInstancesList() {
+        return sopInstancesList;
     }
 
     public String toXml() {
