@@ -68,8 +68,9 @@ public class Manifest {
                             if (serieInstanceUID != null && !"".equals(serieInstanceUID.trim())) {
                                 Series s = getSeries(study, seriesDataset);
                                 List<DicomObject> instances =
-                                    query(nodeSource, null, callingAet, QueryRetrieveLevel.IMAGE, true, new String[] {
-                                        Integer.toHexString(Tag.SeriesInstanceUID), serieInstanceUID }, null);
+                                    query(nodeSource, null, callingAet, QueryRetrieveLevel.IMAGE, true,
+                                        new String[] { Integer.toHexString(Tag.StudyInstanceUID), studyInstanceUID,
+                                            Integer.toHexString(Tag.SeriesInstanceUID), serieInstanceUID }, null);
                                 if (instances != null) {
                                     for (DicomObject instanceDataSet : instances) {
                                         String sopUID = instanceDataSet.getString(Tag.SOPInstanceUID);
@@ -128,8 +129,15 @@ public class Manifest {
                             if (seriesInstanceUID != null && !"".equals(seriesInstanceUID.trim())) {
                                 Series s = getSeries(study, seriesDataset);
                                 List<DicomObject> instances =
-                                    query(nodeSource, null, callingAet, QueryRetrieveLevel.IMAGE, true, new String[] {
-                                        Integer.toHexString(Tag.SeriesInstanceUID), seriesInstanceUID }, null);
+                                    query(
+                                        nodeSource,
+                                        null,
+                                        callingAet,
+                                        QueryRetrieveLevel.IMAGE,
+                                        true,
+                                        new String[] { Integer.toHexString(Tag.StudyInstanceUID),
+                                            study.getStudyInstanceUID(), Integer.toHexString(Tag.SeriesInstanceUID),
+                                            seriesInstanceUID }, null);
                                 if (instances != null) {
                                     for (DicomObject instanceDataSet : instances) {
                                         String sopUID = instanceDataSet.getString(Tag.SOPInstanceUID);
@@ -174,7 +182,8 @@ public class Manifest {
                     Series s = getSeries(study, seriesDataset);
                     List<DicomObject> instances =
                         query(nodeSource, null, callingAet, QueryRetrieveLevel.IMAGE, true,
-                            new String[] { Integer.toHexString(Tag.SeriesInstanceUID), seriesInstanceUID }, null);
+                            new String[] { Integer.toHexString(Tag.StudyInstanceUID), study.getStudyInstanceUID(),
+                                Integer.toHexString(Tag.SeriesInstanceUID), seriesInstanceUID }, null);
                     if (instances != null) {
                         for (DicomObject instanceDataSet : instances) {
                             String sopUID = instanceDataSet.getString(Tag.SOPInstanceUID);
