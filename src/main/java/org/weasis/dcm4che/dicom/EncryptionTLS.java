@@ -12,28 +12,28 @@ package org.weasis.dcm4che.dicom;
 
 public class EncryptionTLS {
 
-	public final static String[] TLS_AND_SSLv2 =
+	public static final String[] TLS_AND_SSLv2 =
 		{
 				"TLSv1", "SSLv3", "SSLv2Hello"
 		};
 
-	public final static String[] TLS1 =
+	public static final String[] TLS1 =
 		{
 			"TLSv1"
 		};
-	public final static String[] SSL3 =
+	public static final String[] SSL3 =
 		{
 			"SSLv3"
 		};
-	public final static String[] NO_TLS1 =
+	public static final String[] NO_TLS1 =
 		{
 				"SSLv3", "SSLv2Hello"
 		};
-	public final static String[] NO_SSL2 =
+	public static final String[] NO_SSL2 =
 		{
 				"TLSv1", "SSLv3"
 		};
-	public final static String[] NO_SSL3 =
+	public static final String[] NO_SSL3 =
 		{
 				"TLSv1", "SSLv2Hello"
 		};
