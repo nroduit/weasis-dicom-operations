@@ -31,9 +31,8 @@ public class WadoQueryException extends Throwable {
     public static int CANNOT_WRITE_TO_TEMP_FILE = 4;
 
     // Predefined exceptions messages
-    private static String exceptions[] =
-        { "No Exception", "No Patients List", "Bad URL Path", "Cannot Create Temporary File",
-            "Cannot Write To Temporary File" };
+    private static String exceptions[] = { "No Exception", "No Patients List", "Bad URL Path",
+        "Cannot Create Temporary File", "Cannot Write To Temporary File" };
 
     // Constructors
     /**

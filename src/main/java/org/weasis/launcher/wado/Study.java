@@ -30,8 +30,9 @@ public class Study implements XmlDescription {
     private final List<Series> seriesList;
 
     public Study(String studyInstanceUID) {
-        if (studyInstanceUID == null)
+        if (studyInstanceUID == null) {
             throw new IllegalArgumentException("studyInstanceUID cannot be null!");
+        }
         this.studyInstanceUID = studyInstanceUID;
         seriesList = new ArrayList<Series>();
     }
@@ -117,8 +118,9 @@ public class Study implements XmlDescription {
                     } catch (NumberFormatException e) {
                     }
                     int rep = (nubmer1 < nubmer2 ? -1 : (nubmer1 == nubmer2 ? 0 : 1));
-                    if (rep != 0)
+                    if (rep != 0) {
                         return rep;
+                    }
                     return o1.getSeriesInstanceUID().compareTo(o2.getSeriesInstanceUID());
                 }
             });
@@ -133,16 +135,18 @@ public class Study implements XmlDescription {
 
     public boolean isEmpty() {
         for (Series s : seriesList) {
-            if (!s.isEmpty())
+            if (!s.isEmpty()) {
                 return false;
+            }
         }
         return true;
     }
 
     public Series getSeries(String uid) {
         for (Series s : seriesList) {
-            if (s.getSeriesInstanceUID().equals(uid))
+            if (s.getSeriesInstanceUID().equals(uid)) {
                 return s;
+            }
         }
         return null;
     }

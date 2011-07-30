@@ -261,7 +261,7 @@ public final class EscapeChars {
      * <P>
      * Replaces all <tt>'&'</tt> characters with <tt>'&amp;'</tt>.
      * 
-     *<P>
+     * <P>
      * An ampersand character may appear in the query string of a URL. The ampersand character is indeed valid in a URL.
      * <em>However, URLs usually appear as an <tt>HREF</tt> attribute, and 
      * such attributes have the additional constraint that ampersands 
@@ -397,17 +397,17 @@ public final class EscapeChars {
      * 
      * <P>
      * The escaped characters include :
-     *<ul>
-     *<li>.
-     *<li>\
-     *<li>?, * , and +
-     *<li>&
-     *<li>:
-     *<li>{ and }
-     *<li>[ and ]
-     *<li>( and )
-     *<li>^ and $
-     *</ul>
+     * <ul>
+     * <li>.
+     * <li>\
+     * <li>?, * , and +
+     * <li>&
+     * <li>:
+     * <li>{ and }
+     * <li>[ and ]
+     * <li>( and )
+     * <li>^ and $
+     * </ul>
      */
     public static String forRegex(String aRegexFragment) {
         final StringBuilder result = new StringBuilder();

@@ -30,8 +30,9 @@ public class Series implements XmlDescription {
     private int wadoCompression = 0;
 
     public Series(String seriesInstanceUID) {
-        if (seriesInstanceUID == null)
+        if (seriesInstanceUID == null) {
             throw new IllegalArgumentException("seriesInstanceUID is null");
+        }
         this.seriesInstanceUID = seriesInstanceUID;
         sopInstancesList = new ArrayList<SOPInstance>();
     }
