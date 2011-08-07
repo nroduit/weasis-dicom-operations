@@ -23,6 +23,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.weasis.launcher.wado.WadoParameters.HttpTag;
 import org.weasis.launcher.wado.xml.FileUtil;
 import org.weasis.launcher.wado.xml.TagUtil;
 
@@ -69,7 +70,17 @@ public class WadoQuery {
             TagUtil.addXmlAttribute(WadoParameters.TAG_WADO_OVERRIDE_TAGS, wadoParameters.getOverrideDicomTagsList(),
                 wadoQuery);
             wadoQuery.append(">");
-
+            if (wadoParameters.getHttpTaglist() != null) {
+                for (HttpTag tag : wadoParameters.getHttpTaglist()) {
+                    wadoQuery.append("\n<");
+                    wadoQuery.append(WadoParameters.TAG_HTTP_TAG);
+                    wadoQuery.append(" key=\"");
+                    wadoQuery.append(tag.getKey());
+                    wadoQuery.append("\" value=\"");
+                    wadoQuery.append(tag.getValue());
+                    wadoQuery.append("\" />");
+                }
+            }
             logger.debug("Xml header [{}]", wadoQuery.toString());
 
             for (int i = 0; i < patients.size(); i++) {

@@ -10,6 +10,9 @@
  ******************************************************************************/
 package org.weasis.launcher.wado;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WadoParameters {
 
     public static final String TAG_DOCUMENT_ROOT = "wado_query";
@@ -18,8 +21,10 @@ public class WadoParameters {
     public static final String TAG_WADO_URL = "wadoURL";
     public static final String TAG_WADO_ONLY_SOP_UID = "requireOnlySOPInstanceUID";
     public static final String TAG_WADO_ADDITIONNAL_PARAMETERS = "additionnalParameters";
+    private final List<WadoParameters.HttpTag> httpTaglist;
     public static final String TAG_WADO_OVERRIDE_TAGS = "overrideDicomTagsList";
     public static final String TAG_WADO_WEB_LOGIN = "webLogin";
+    public static final String TAG_HTTP_TAG = "httpTag";
 
     private final String wadoURL;
     private final boolean requireOnlySOPInstanceUID;
@@ -33,6 +38,7 @@ public class WadoParameters {
             throw new IllegalArgumentException("wadoURL cannot be null");
         }
         this.wadoURL = wadoURL;
+        this.httpTaglist = new ArrayList<WadoParameters.HttpTag>(2);
         this.webLogin = webLogin;
         this.requireOnlySOPInstanceUID = requireOnlySOPInstanceUID;
         this.additionnalParameters = additionnalParameters == null ? "" : additionnalParameters;
@@ -57,5 +63,34 @@ public class WadoParameters {
 
     public String getWebLogin() {
         return webLogin;
+    }
+
+    public List<WadoParameters.HttpTag> getHttpTaglist() {
+        return httpTaglist;
+    }
+
+    public void addHttpTag(String key, String value) {
+        if (key != null && value != null) {
+            httpTaglist.add(new HttpTag(key, value));
+        }
+    }
+
+    static class HttpTag {
+        private final String key;
+        private final String value;
+
+        public HttpTag(String key, String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
     }
 }
