@@ -6,7 +6,7 @@
 	<artifactId>weasis-dicom-operations</artifactId>
 	<packaging>jar</packaging>
 	<name>Weasis DICOM function</name>
-	<version>0.5.1-SNAPSHOT</version>
+	<version>0.5.1</version>
 	<scm>
 		<connection>scm:svn:https://weasis.repositoryhosting.com/svn/weasis_weasis-dicom-operations/trunk</connection>
 		<developerConnection>scm:svn:https://weasis.repositoryhosting.com/svn/weasis_weasis-dicom-operations/trunk</developerConnection>
