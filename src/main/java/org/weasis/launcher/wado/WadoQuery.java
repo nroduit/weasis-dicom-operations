@@ -37,8 +37,7 @@ public class WadoQuery {
     private StringBuffer wadoQuery;
 
     /**
-     * Creates a wado query with the given patients list. This wado query is destined to a specified DCM4CHEE identified
-     * by a server name and port.
+     * Creates a wado query with the given patients list.
      * 
      * @param patients
      *            a list of patients
