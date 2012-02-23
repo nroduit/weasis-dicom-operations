@@ -8,7 +8,7 @@
  * Contributors:
  *     Nicolas Roduit - initial API and implementation
  ******************************************************************************/
-package org.weasis.dcm4che.dicom;
+package org.weasis.dicom;
 
 import java.util.ArrayList;
 

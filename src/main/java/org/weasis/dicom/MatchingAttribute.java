@@ -8,31 +8,24 @@
  * Contributors:
  *     Nicolas Roduit - initial API and implementation
  ******************************************************************************/
-package org.weasis.dcm4che.dicom;
+package org.weasis.dicom;
 
-public class DicomNode {
+public class MatchingAttribute {
 
-    private final String aet;
-    private final String hostname;
-    private final int port;
+    private final int tag;
+    private final String value;
 
-    public DicomNode(String aet, String hostname, int port) {
-        super();
-        this.aet = aet;
-        this.hostname = hostname;
-        this.port = port;
+    public MatchingAttribute(int tag, String value) {
+        this.tag = tag;
+        this.value = value;
     }
 
-    public String getAet() {
-        return aet;
+    public int getTag() {
+        return tag;
     }
 
-    public String getHostname() {
-        return hostname;
-    }
-
-    public int getPort() {
-        return port;
+    public String getValue() {
+        return value;
     }
 
 }

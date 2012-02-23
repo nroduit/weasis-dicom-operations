@@ -68,7 +68,7 @@ import org.dcm4che2.net.UserIdentity;
 
 /**
  * @author gunter zeilinger(gunterze@gmail.com)
- * @version $Revision: 1.1 $ $Date: 2009/08/26 08:18:10 $
+ * @version $Revision: 12233 $ $Date: 2009-10-02 12:05:17 +0200 (Fri, 02 Oct 2009) $
  * @since Oct 13, 2005
  */
 public class DcmEcho {
@@ -76,13 +76,11 @@ public class DcmEcho {
     private static final String USAGE = "dcmecho [Options] <aet>[@<host>[:<port>]]";
 
     private static final String DESCRIPTION = "Send DICOM Echo to the specified remote Application Entity. "
-            + "If <port> is not specified, DICOM default port 104 is assumed. "
-            + "If also no <host> is specified localhost is assumed.\n"
-            + "Options:";
+        + "If <port> is not specified, DICOM default port 104 is assumed. "
+        + "If also no <host> is specified localhost is assumed.\n" + "Options:";
 
     private static final String EXAMPLE = "\nExample: dcmecho STORESCP@localhost:11112 \n"
-            + "=> Verify connection to Application Entity STORESCP, "
-            + "listening on local port 11112.";
+        + "=> Verify connection to Application Entity STORESCP, " + "listening on local port 11112.";
 
     private static String[] TLS1 = { "TLSv1" };
 
@@ -95,12 +93,12 @@ public class DcmEcho {
     private static String[] NO_SSL3 = { "TLSv1", "SSLv2Hello" };
 
     private static char[] SECRET = { 's', 'e', 'c', 'r', 'e', 't' };
-    
+
     private static final String[] DEF_TS = { UID.ImplicitVRLittleEndian };
 
-    private static final TransferCapability VERIFICATION_SCU = new TransferCapability(
-            UID.VerificationSOPClass, DEF_TS, TransferCapability.SCU);
-    
+    private static final TransferCapability VERIFICATION_SCU = new TransferCapability(UID.VerificationSOPClass, DEF_TS,
+        TransferCapability.SCU);
+
     private final Executor executor;
 
     private final NetworkApplicationEntity remoteAE = new NetworkApplicationEntity();
@@ -114,16 +112,16 @@ public class DcmEcho {
     private final NetworkConnection conn = new NetworkConnection();
 
     private Association assoc;
-    
-    private String keyStoreURL = "resource:tls/test_sys_1.p12";
-    
-    private char[] keyStorePassword = SECRET; 
 
-    private char[] keyPassword; 
-    
+    private String keyStoreURL = "resource:tls/test_sys_1.p12";
+
+    private char[] keyStorePassword = SECRET;
+
+    private char[] keyPassword;
+
     private String trustStoreURL = "resource:tls/mesa_certs.jks";
-    
-    private char[] trustStorePassword = SECRET; 
+
+    private char[] trustStorePassword = SECRET;
 
     public DcmEcho(String name) {
         device = new Device(name);
@@ -170,7 +168,7 @@ public class DcmEcho {
         conn.setTlsAES_128_CBC();
         remoteConn.setTlsAES_128_CBC();
     }
-    
+
     public final void setTlsNeedClientAuth(boolean needClientAuth) {
         conn.setTlsNeedClientAuth(needClientAuth);
     }
@@ -178,27 +176,28 @@ public class DcmEcho {
     public final void setKeyStoreURL(String url) {
         keyStoreURL = url;
     }
-    
+
     public final void setKeyStorePassword(String pw) {
         keyStorePassword = pw.toCharArray();
     }
-    
+
     public final void setKeyPassword(String pw) {
         keyPassword = pw.toCharArray();
     }
-    
+
     public final void setTrustStorePassword(String pw) {
         trustStorePassword = pw.toCharArray();
     }
-    
+
     public final void setTrustStoreURL(String url) {
         trustStoreURL = url;
     }
-    
+
     public final void setCalledAET(String called, boolean reuse) {
         remoteAE.setAETitle(called);
-        if (reuse)
+        if (reuse) {
             ae.setReuseAssocationToAETitle(new String[] { called });
+        }
     }
 
     public final void setCalling(String calling) {
@@ -242,128 +241,104 @@ public class DcmEcho {
 
         OptionBuilder.withArgName("name");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "set device name, use DCMECHO by default");
+        OptionBuilder.withDescription("set device name, use DCMECHO by default");
         opts.addOption(OptionBuilder.create("device"));
 
         OptionBuilder.withArgName("aet[@host]");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "set AET and local address of local Application Entity, use "
-                        + "device name and pick up any valid local address to "
-                        + "bind the socket by default");
+        OptionBuilder.withDescription("set AET and local address of local Application Entity, use "
+            + "device name and pick up any valid local address to " + "bind the socket by default");
         opts.addOption(OptionBuilder.create("L"));
 
         OptionBuilder.withArgName("username");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "enable User Identity Negotiation with specified username and "
-                + " optional passcode");
+        OptionBuilder.withDescription("enable User Identity Negotiation with specified username and "
+            + " optional passcode");
         opts.addOption(OptionBuilder.create("username"));
 
         OptionBuilder.withArgName("passcode");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "optional passcode for User Identity Negotiation, "
-                + "only effective with option -username");
+        OptionBuilder.withDescription("optional passcode for User Identity Negotiation, "
+            + "only effective with option -username");
         opts.addOption(OptionBuilder.create("passcode"));
 
-        opts.addOption("uidnegrsp", false,
-                "request positive User Identity Negotation response, "
-                + "only effective with option -username");
-        
+        opts.addOption("uidnegrsp", false, "request positive User Identity Negotation response, "
+            + "only effective with option -username");
+
         OptionBuilder.withArgName("NULL|3DES|AES");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "enable TLS connection without, 3DES or AES encryption");
+        OptionBuilder.withDescription("enable TLS connection without, 3DES or AES encryption");
         opts.addOption(OptionBuilder.create("tls"));
 
         OptionGroup tlsProtocol = new OptionGroup();
-        tlsProtocol.addOption(new Option("tls1",
-                "disable the use of SSLv3 and SSLv2 for TLS connections"));
-        tlsProtocol.addOption(new Option("ssl3",
-                "disable the use of TLSv1 and SSLv2 for TLS connections"));
-        tlsProtocol.addOption(new Option("no_tls1",
-                "disable the use of TLSv1 for TLS connections"));
-        tlsProtocol.addOption(new Option("no_ssl3",
-                "disable the use of SSLv3 for TLS connections"));
-        tlsProtocol.addOption(new Option("no_ssl2",
-                "disable the use of SSLv2 for TLS connections"));
+        tlsProtocol.addOption(new Option("tls1", "disable the use of SSLv3 and SSLv2 for TLS connections"));
+        tlsProtocol.addOption(new Option("ssl3", "disable the use of TLSv1 and SSLv2 for TLS connections"));
+        tlsProtocol.addOption(new Option("no_tls1", "disable the use of TLSv1 for TLS connections"));
+        tlsProtocol.addOption(new Option("no_ssl3", "disable the use of SSLv3 for TLS connections"));
+        tlsProtocol.addOption(new Option("no_ssl2", "disable the use of SSLv2 for TLS connections"));
         opts.addOptionGroup(tlsProtocol);
 
-        opts.addOption("noclientauth", false,
-                "disable client authentification for TLS");
+        opts.addOption("noclientauth", false, "disable client authentification for TLS");
 
         OptionBuilder.withArgName("file|url");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "file path or URL of P12 or JKS keystore, resource:tls/test_sys_1.p12 by default");
+        OptionBuilder
+            .withDescription("file path or URL of P12 or JKS keystore, resource:tls/test_sys_1.p12 by default");
         opts.addOption(OptionBuilder.create("keystore"));
 
         OptionBuilder.withArgName("password");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "password for keystore file, 'secret' by default");
+        OptionBuilder.withDescription("password for keystore file, 'secret' by default");
         opts.addOption(OptionBuilder.create("keystorepw"));
 
         OptionBuilder.withArgName("password");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "password for accessing the key in the keystore, keystore password by default");
+        OptionBuilder.withDescription("password for accessing the key in the keystore, keystore password by default");
         opts.addOption(OptionBuilder.create("keypw"));
 
         OptionBuilder.withArgName("file|url");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "file path or URL of JKS truststore, resource:tls/mesa_certs.jks by default");
+        OptionBuilder.withDescription("file path or URL of JKS truststore, resource:tls/mesa_certs.jks by default");
         opts.addOption(OptionBuilder.create("truststore"));
 
         OptionBuilder.withArgName("password");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "password for truststore file, 'secret' by default");
+        OptionBuilder.withDescription("password for truststore file, 'secret' by default");
         opts.addOption(OptionBuilder.create("truststorepw"));
-        
+
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "timeout in ms for TCP connect, no timeout by default");
+        OptionBuilder.withDescription("timeout in ms for TCP connect, no timeout by default");
         opts.addOption(OptionBuilder.create("connectTO"));
 
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "delay in ms for Socket close after sending A-ABORT, 50ms by default");
+        OptionBuilder.withDescription("delay in ms for Socket close after sending A-ABORT, 50ms by default");
         opts.addOption(OptionBuilder.create("soclosedelay"));
 
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "period in ms to check for outstanding DIMSE-RSP, 10s by default");
+        OptionBuilder.withDescription("period in ms to check for outstanding DIMSE-RSP, 10s by default");
         opts.addOption(OptionBuilder.create("reaper"));
 
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "timeout in ms for receiving DIMSE-RSP, 60s by default");
+        OptionBuilder.withDescription("timeout in ms for receiving DIMSE-RSP, 10s by default");
         opts.addOption(OptionBuilder.create("rspTO"));
 
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "timeout in ms for receiving A-ASSOCIATE-AC, 5s by default");
+        OptionBuilder.withDescription("timeout in ms for receiving A-ASSOCIATE-AC, 5s by default");
         opts.addOption(OptionBuilder.create("acceptTO"));
 
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "timeout in ms for receiving A-RELEASE-RP, 5s by default");
+        OptionBuilder.withDescription("timeout in ms for receiving A-RELEASE-RP, 5s by default");
         opts.addOption(OptionBuilder.create("releaseTO"));
 
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "timeout in ms for receiving DIMSE-RQ, 10s by default");
+        OptionBuilder.withDescription("timeout in ms for receiving DIMSE-RQ, 10s by default");
         opts.addOption(OptionBuilder.create("idleTO"));
 
         OptionBuilder.withArgName("num");
@@ -373,17 +348,14 @@ public class DcmEcho {
 
         OptionBuilder.withArgName("ms");
         OptionBuilder.hasArg();
-        OptionBuilder.withDescription(
-                "delay in ms between repeated C-FIND RQ, immediately after C-FIND RSP by default");
+        OptionBuilder
+            .withDescription("delay in ms between repeated C-FIND RQ, immediately after C-FIND RSP by default");
         opts.addOption(OptionBuilder.create("repeatdelay"));
 
-        opts.addOption("reuseassoc", false,
-                "Reuse association for repeated C-ECHO");
-        opts.addOption("closeassoc", false,
-                "Close association after each C-ECHO");
+        opts.addOption("reuseassoc", false, "Reuse association for repeated C-ECHO");
+        opts.addOption("closeassoc", false, "Close association after each C-ECHO");
         opts.addOption("h", "help", false, "print this message");
-        opts.addOption("V", "version", false,
-                "print the version information and exit");
+        opts.addOption("V", "version", false, "print the version information and exit");
         CommandLine cl = null;
         try {
             cl = new GnuParser().parse(opts, args);
@@ -407,8 +379,7 @@ public class DcmEcho {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         CommandLine cl = parse(args);
-        DcmEcho dcmecho = new DcmEcho(cl.hasOption("device") 
-                    ? cl.getOptionValue("device") : "DCMECHO");
+        DcmEcho dcmecho = new DcmEcho(cl.hasOption("device") ? cl.getOptionValue("device") : "DCMECHO");
         final List<String> argList = cl.getArgList();
         String remoteAE = argList.get(0);
         String[] calledAETAddress = split(remoteAE, '@');
@@ -434,51 +405,46 @@ public class DcmEcho {
             UserIdentity userId;
             if (cl.hasOption("passcode")) {
                 String passcode = cl.getOptionValue("passcode");
-                userId = new UserIdentity.UsernamePasscode(username,
-                        passcode.toCharArray());
+                userId = new UserIdentity.UsernamePasscode(username, passcode.toCharArray());
             } else {
                 userId = new UserIdentity.Username(username);
             }
             userId.setPositiveResponseRequested(cl.hasOption("uidnegrsp"));
             dcmecho.setUserIdentity(userId);
         }
-        if (cl.hasOption("connectTO"))
-            dcmecho.setConnectTimeout(parseInt(cl.getOptionValue("connectTO"),
-                    "illegal argument of option -connectTO", 1,
-                    Integer.MAX_VALUE));
-        dcmecho.setIdleTimeout(cl.hasOption("idleTO") ? parseInt(cl
-                .getOptionValue("idleTO"),
-                "illegal argument of option -idleTO", 1, Integer.MAX_VALUE)
-                : 10000);
-        if (cl.hasOption("reaper"))
-            dcmecho
-                    .setAssociationReaperPeriod(parseInt(cl
-                            .getOptionValue("reaper"),
-                            "illegal argument of option -reaper", 1,
-                            Integer.MAX_VALUE));
-        if (cl.hasOption("rspTO"))
-            dcmecho.setDimseRspTimeout(parseInt(cl.getOptionValue("rspTO"),
-                    "illegal argument of option -rspTO", 1, Integer.MAX_VALUE));
-        if (cl.hasOption("acceptTO"))
-            dcmecho.setAcceptTimeout(parseInt(cl.getOptionValue("acceptTO"),
-                    "illegal argument of option -acceptTO", 1,
-                    Integer.MAX_VALUE));
-        if (cl.hasOption("releaseTO"))
-            dcmecho.setReleaseTimeout(parseInt(cl.getOptionValue("releaseTO"),
-                    "illegal argument of option -releaseTO", 1,
-                    Integer.MAX_VALUE));
-        if (cl.hasOption("soclosedelay"))
-            dcmecho.setSocketCloseDelay(parseInt(cl
-                    .getOptionValue("soclosedelay"),
-                    "illegal argument of option -soclosedelay", 1, 10000));
+        if (cl.hasOption("connectTO")) {
+            dcmecho.setConnectTimeout(parseInt(cl.getOptionValue("connectTO"), "illegal argument of option -connectTO",
+                1, Integer.MAX_VALUE));
+        }
+        dcmecho.setIdleTimeout(cl.hasOption("idleTO") ? parseInt(cl.getOptionValue("idleTO"),
+            "illegal argument of option -idleTO", 1, Integer.MAX_VALUE) : 10000);
+        if (cl.hasOption("reaper")) {
+            dcmecho.setAssociationReaperPeriod(parseInt(cl.getOptionValue("reaper"),
+                "illegal argument of option -reaper", 1, Integer.MAX_VALUE));
+        }
+        if (cl.hasOption("rspTO")) {
+            dcmecho.setDimseRspTimeout(parseInt(cl.getOptionValue("rspTO"), "illegal argument of option -rspTO", 1,
+                Integer.MAX_VALUE));
+        }
+        if (cl.hasOption("acceptTO")) {
+            dcmecho.setAcceptTimeout(parseInt(cl.getOptionValue("acceptTO"), "illegal argument of option -acceptTO", 1,
+                Integer.MAX_VALUE));
+        }
+        if (cl.hasOption("releaseTO")) {
+            dcmecho.setReleaseTimeout(parseInt(cl.getOptionValue("releaseTO"), "illegal argument of option -releaseTO",
+                1, Integer.MAX_VALUE));
+        }
+        if (cl.hasOption("soclosedelay")) {
+            dcmecho.setSocketCloseDelay(parseInt(cl.getOptionValue("soclosedelay"),
+                "illegal argument of option -soclosedelay", 1, 10000));
+        }
 
-        int repeat = cl.hasOption("repeat") ? parseInt(cl
-                .getOptionValue("repeat"),
-                "illegal argument of option -repeat", 1, Integer.MAX_VALUE) : 0;
-        int interval = cl.hasOption("repeatdelay") ? parseInt(cl
-                .getOptionValue("repeatdelay"),
-                "illegal argument of option -repeatdelay", 1, Integer.MAX_VALUE)
-                : 0;
+        int repeat =
+            cl.hasOption("repeat") ? parseInt(cl.getOptionValue("repeat"), "illegal argument of option -repeat", 1,
+                Integer.MAX_VALUE) : 0;
+        int interval =
+            cl.hasOption("repeatdelay") ? parseInt(cl.getOptionValue("repeatdelay"),
+                "illegal argument of option -repeatdelay", 1, Integer.MAX_VALUE) : 0;
         boolean closeAssoc = cl.hasOption("closeassoc");
 
         if (cl.hasOption("tls")) {
@@ -508,63 +474,55 @@ public class DcmEcho {
                 dcmecho.setKeyStoreURL(cl.getOptionValue("keystore"));
             }
             if (cl.hasOption("keystorepw")) {
-                dcmecho.setKeyStorePassword(
-                        cl.getOptionValue("keystorepw"));
+                dcmecho.setKeyStorePassword(cl.getOptionValue("keystorepw"));
             }
             if (cl.hasOption("keypw")) {
                 dcmecho.setKeyPassword(cl.getOptionValue("keypw"));
             }
             if (cl.hasOption("truststore")) {
-                dcmecho.setTrustStoreURL(
-                        cl.getOptionValue("truststore"));
+                dcmecho.setTrustStoreURL(cl.getOptionValue("truststore"));
             }
             if (cl.hasOption("truststorepw")) {
-                dcmecho.setTrustStorePassword(
-                        cl.getOptionValue("truststorepw"));
+                dcmecho.setTrustStorePassword(cl.getOptionValue("truststorepw"));
             }
             long t1 = System.currentTimeMillis();
             try {
                 dcmecho.initTLS();
             } catch (Exception e) {
-                System.err.println("ERROR: Failed to initialize TLS context:"
-                        + e.getMessage());
+                System.err.println("ERROR: Failed to initialize TLS context:" + e.getMessage());
                 System.exit(2);
             }
             long t2 = System.currentTimeMillis();
-            System.out.println("Initialize TLS context in "
-                    + ((t2 - t1) / 1000F) + "s");
-        }        
+            System.out.println("Initialize TLS context in " + ((t2 - t1) / 1000F) + "s");
+        }
 
         long t1 = System.currentTimeMillis();
         try {
             dcmecho.open();
         } catch (Exception e) {
-            System.err.println("ERROR: Failed to establish association:"
-                    + e.getMessage());
+            System.err.println("ERROR: Failed to establish association:" + e.getMessage());
             System.exit(2);
         }
         long t2 = System.currentTimeMillis();
-        System.out.println("Connected to " + remoteAE + " in "
-                + ((t2 - t1) / 1000F) + "s");
+        System.out.println("Connected to " + remoteAE + " in " + ((t2 - t1) / 1000F) + "s");
 
         for (;;) {
             try {
                 dcmecho.echo();
                 long t3 = System.currentTimeMillis();
-                System.out.println("Perform Verification in "
-                        + ((t2 - t3) / 1000F) + "s");
+                System.out.println("Perform Verification in " + ((t2 - t3) / 1000F) + "s");
                 if (repeat == 0 || closeAssoc) {
                     dcmecho.close();
                     System.out.println("Released connection to " + remoteAE);
                 }
-                if (repeat-- == 0)
+                if (repeat-- == 0) {
                     break;
+                }
                 Thread.sleep(interval);
                 long t4 = System.currentTimeMillis();
                 dcmecho.open();
                 t2 = System.currentTimeMillis();
-                System.out.println("Reconnect or reuse connection to "
-                        + remoteAE + " in " + ((t2 - t4) / 1000F) + "s");
+                System.out.println("Reconnect or reuse connection to " + remoteAE + " in " + ((t2 - t4) / 1000F) + "s");
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -579,15 +537,15 @@ public class DcmEcho {
     }
 
     private static int toPort(String port) {
-        return port != null ? parseInt(port, "illegal port number", 1, 0xffff)
-                : 104;
+        return port != null ? parseInt(port, "illegal port number", 1, 0xffff) : 104;
     }
 
     private static int parseInt(String s, String errPrompt, int min, int max) {
         try {
             int i = Integer.parseInt(s);
-            if (i >= min && i <= max)
+            if (i >= min && i <= max) {
                 return i;
+            }
         } catch (NumberFormatException e) {
             // parameter is not a valid integer; fall through to exit
         }
@@ -614,13 +572,10 @@ public class DcmEcho {
     public void initTLS() throws GeneralSecurityException, IOException {
         KeyStore keyStore = loadKeyStore(keyStoreURL, keyStorePassword);
         KeyStore trustStore = loadKeyStore(trustStoreURL, trustStorePassword);
-        device.initTLS(keyStore,
-                keyPassword != null ? keyPassword : keyStorePassword,
-                trustStore);
+        device.initTLS(keyStore, keyPassword != null ? keyPassword : keyStorePassword, trustStore);
     }
-    
-    private static KeyStore loadKeyStore(String url, char[] password)
-            throws GeneralSecurityException, IOException {
+
+    private static KeyStore loadKeyStore(String url, char[] password) throws GeneralSecurityException, IOException {
         KeyStore key = KeyStore.getInstance(toKeyStoreType(url));
         InputStream in = openFileOrURL(url);
         try {
@@ -633,8 +588,7 @@ public class DcmEcho {
 
     private static InputStream openFileOrURL(String url) throws IOException {
         if (url.startsWith("resource:")) {
-            return DcmEcho.class.getClassLoader().getResourceAsStream(
-                    url.substring(9));
+            return DcmEcho.class.getClassLoader().getResourceAsStream(url.substring(9));
         }
         try {
             return new URL(url).openStream();
@@ -644,12 +598,10 @@ public class DcmEcho {
     }
 
     private static String toKeyStoreType(String fname) {
-        return fname.endsWith(".p12") || fname.endsWith(".P12")
-                 ? "PKCS12" : "JKS";
+        return fname.endsWith(".p12") || fname.endsWith(".P12") ? "PKCS12" : "JKS";
     }
-    
-    public void open() throws IOException, ConfigurationException,
-            InterruptedException {
+
+    public void open() throws IOException, ConfigurationException, InterruptedException {
         assoc = ae.connect(remoteAE, executor);
     }
 

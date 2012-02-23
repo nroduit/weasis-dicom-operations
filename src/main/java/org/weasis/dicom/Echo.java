@@ -8,7 +8,7 @@
  * Contributors:
  *     Nicolas Roduit - initial API and implementation
  ******************************************************************************/
-package org.weasis.dcm4che.dicom;
+package org.weasis.dicom;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ import org.dcm4che2.net.ConfigurationException;
 import org.dcm4che2.tool.dcmecho.DcmEcho;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.weasis.dcm4che.dicom.EncryptionTLS.TLS;
+import org.weasis.dicom.EncryptionTLS.TLS;
 
 public class Echo {
 

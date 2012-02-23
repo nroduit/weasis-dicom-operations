@@ -8,7 +8,7 @@
  * Contributors:
  *     Nicolas Roduit - initial API and implementation
  ******************************************************************************/
-package org.weasis.dcm4che.dicom;
+package org.weasis.dicom;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import org.dcm4che2.tool.dcmqr.DcmQR;
 import org.dcm4che2.tool.dcmqr.DcmQR.QueryRetrieveLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.weasis.dcm4che.dicom.EncryptionTLS.TLS;
+import org.weasis.dicom.EncryptionTLS.TLS;
 import org.weasis.launcher.wado.Patient;
 import org.weasis.launcher.wado.SOPInstance;
 import org.weasis.launcher.wado.Series;
