@@ -1,5 +1,7 @@
 package org.weasis.launcher.wado.xml;
 
+import org.weasis.dicom.util.FileUtil;
+
 /**
  * <p>
  * Encodes and decodes to and from Base64 notation.
@@ -356,12 +358,13 @@ public class Base64 {
      * guarantee as to which one will be picked.
      */
     private final static byte[] getAlphabet(int options) {
-        if ((options & URL_SAFE) == URL_SAFE)
+        if ((options & URL_SAFE) == URL_SAFE) {
             return _URL_SAFE_ALPHABET;
-        else if ((options & ORDERED) == ORDERED)
+        } else if ((options & ORDERED) == ORDERED) {
             return _ORDERED_ALPHABET;
-        else
+        } else {
             return _STANDARD_ALPHABET;
+        }
     } // end getAlphabet
 
     /**
@@ -370,12 +373,13 @@ public class Base64 {
      * to which one will be picked.
      */
     private final static byte[] getDecodabet(int options) {
-        if ((options & URL_SAFE) == URL_SAFE)
+        if ((options & URL_SAFE) == URL_SAFE) {
             return _URL_SAFE_DECODABET;
-        else if ((options & ORDERED) == ORDERED)
+        } else if ((options & ORDERED) == ORDERED) {
             return _ORDERED_DECODABET;
-        else
+        } else {
             return _STANDARD_DECODABET;
+        }
     } // end getAlphabet
 
     /** Defeats instantiation. */
@@ -585,8 +589,9 @@ public class Base64 {
      */
     public static String encodeObject(java.io.Serializable serializableObject, int options) throws java.io.IOException {
 
-        if (serializableObject == null)
+        if (serializableObject == null) {
             throw new NullPointerException("Cannot serialize a null object.");
+        }
 
         // Streams
         java.io.ByteArrayOutputStream baos = null;
@@ -846,18 +851,22 @@ public class Base64 {
      */
     public static byte[] encodeBytesToBytes(byte[] source, int off, int len, int options) throws java.io.IOException {
 
-        if (source == null)
+        if (source == null) {
             throw new NullPointerException("Cannot serialize a null array.");
+        }
 
-        if (off < 0)
+        if (off < 0) {
             throw new IllegalArgumentException("Cannot have negative offset: " + off);
+        }
 
-        if (len < 0)
+        if (len < 0) {
             throw new IllegalArgumentException("Cannot have length offset: " + len);
+        }
 
-        if (off + len > source.length)
+        if (off + len > source.length) {
             throw new IllegalArgumentException(String.format(
                 "Cannot have offset of %d and length of %d with array of length %d", off, len, source.length));
+        }
 
         // Compress?
         if ((options & GZIP) != 0) {
@@ -944,9 +953,10 @@ public class Base64 {
                 System.arraycopy(outBuff, 0, finalOut, 0, e);
                 // System.err.println("Having to resize array from " + outBuff.length + " to " + e );
                 return finalOut;
-            } else
+            } else {
                 // System.err.println("No need to resize array.");
                 return outBuff;
+            }
 
         } // end else: don't compress
 
@@ -986,18 +996,22 @@ public class Base64 {
     private static int decode4to3(byte[] source, int srcOffset, byte[] destination, int destOffset, int options) {
 
         // Lots of error checking and exception throwing
-        if (source == null)
+        if (source == null) {
             throw new NullPointerException("Source array was null.");
-        if (destination == null)
+        }
+        if (destination == null) {
             throw new NullPointerException("Destination array was null.");
-        if (srcOffset < 0 || srcOffset + 3 >= source.length)
+        }
+        if (srcOffset < 0 || srcOffset + 3 >= source.length) {
             throw new IllegalArgumentException(String.format(
                 "Source array with length %d cannot have offset of %d and still process four bytes.", source.length,
                 srcOffset));
-        if (destOffset < 0 || destOffset + 2 >= destination.length)
+        }
+        if (destOffset < 0 || destOffset + 2 >= destination.length) {
             throw new IllegalArgumentException(String.format(
                 "Destination array with length %d cannot have offset of %d and still store three bytes.",
                 destination.length, destOffset));
+        }
 
         byte[] DECODABET = getDecodabet(options);
 
@@ -1090,17 +1104,20 @@ public class Base64 {
     public static byte[] decode(byte[] source, int off, int len, int options) throws java.io.IOException {
 
         // Lots of error checking and exception throwing
-        if (source == null)
+        if (source == null) {
             throw new NullPointerException("Cannot decode null source array.");
-        if (off < 0 || off + len > source.length)
+        }
+        if (off < 0 || off + len > source.length) {
             throw new IllegalArgumentException(String.format(
                 "Source array with length %d cannot have offset of %d and process %d bytes.", source.length, off, len));
+        }
 
-        if (len == 0)
+        if (len == 0) {
             return new byte[0];
-        else if (len < 4)
+        } else if (len < 4) {
             throw new IllegalArgumentException(
                 "Base64-encoded string must have at least four characters, but length specified was " + len);
+        }
 
         byte[] DECODABET = getDecodabet(options);
 
@@ -1134,10 +1151,11 @@ public class Base64 {
                     } // end if: quartet built
                 } // end if: equals sign or better
             } // end if: white space, equals sign or better
-            else
+            else {
                 // There's a bad input character in the Base64 stream.
                 throw new java.io.IOException(String.format(
                     "Bad Base64 input character decimal %d in array position %d", source[i] & 0xFF, i));
+            }
         } // each input character
 
         byte[] out = new byte[outBuffPosn];
@@ -1175,8 +1193,9 @@ public class Base64 {
      */
     public static byte[] decode(String s, int options) throws java.io.IOException {
 
-        if (s == null)
+        if (s == null) {
             throw new NullPointerException("Input string was null.");
+        }
 
         byte[] bytes;
         try {
@@ -1305,10 +1324,11 @@ public class Base64 {
                     public Class<?> resolveClass(java.io.ObjectStreamClass streamClass) throws java.io.IOException,
                         ClassNotFoundException {
                         Class c = Class.forName(streamClass.getName(), false, loader);
-                        if (c == null)
+                        if (c == null) {
                             return super.resolveClass(streamClass);
-                        else
+                        } else {
                             return c; // Class loader knows of this class.
+                        }
                     } // end resolveClass
                 }; // end ois
             } // end else: no custom class loader
@@ -1355,8 +1375,9 @@ public class Base64 {
      */
     public static void encodeToFile(byte[] dataToEncode, String filename) throws java.io.IOException {
 
-        if (dataToEncode == null)
+        if (dataToEncode == null) {
             throw new NullPointerException("Data to encode was null.");
+        }
 
         Base64.OutputStream bos = null;
         try {
@@ -1433,9 +1454,10 @@ public class Base64 {
             int numBytes = 0;
 
             // Check for size of file
-            if (file.length() > Integer.MAX_VALUE)
+            if (file.length() > Integer.MAX_VALUE) {
                 throw new java.io.IOException("File is too big for this convenience method (" + file.length()
                     + " bytes).");
+            }
             buffer = new byte[(int) file.length()];
 
             // Open a stream
@@ -1681,8 +1703,9 @@ public class Base64 {
                         position = 0;
                         numSigBytes = 4;
                     } // end if: got data
-                    else
+                    else {
                         return -1; // Must be end of stream
+                    }
                 } // end if: encoding
 
                 // Else decoding
@@ -1707,11 +1730,12 @@ public class Base64 {
                         numSigBytes = decode4to3(b4, 0, buffer, 0, options);
                         position = 0;
                     } // end if: got four characters
-                    else if (i == 0)
+                    else if (i == 0) {
                         return -1;
-                    else
+                    } else {
                         // Must have broken out from above.
                         throw new java.io.IOException("Improperly padded Base64 input.");
+                    }
 
                 } // end else: decode
             } // end else: get data
@@ -1719,8 +1743,9 @@ public class Base64 {
             // Got data?
             if (position >= 0) {
                 // End of relevant data?
-                if ( /* !encode && */position >= numSigBytes)
+                if ( /* !encode && */position >= numSigBytes) {
                     return -1;
+                }
 
                 if (encode && breakLines && lineLength >= MAX_LINE_LENGTH) {
                     lineLength = 0;
@@ -1741,8 +1766,9 @@ public class Base64 {
                                      // intended to be unsigned.
                 } // end else
             } // end if: position >= 0
-            else
+            else {
                 throw new java.io.IOException("Error in Base64 code reading stream.");
+            }
         } // end read
 
         /**
@@ -1767,9 +1793,9 @@ public class Base64 {
 
                 if (b >= 0) {
                     dest[off + i] = (byte) b;
-                } else if (i == 0)
+                } else if (i == 0) {
                     return -1;
-                else {
+                } else {
                     break; // Out of 'for' loop
                 } // Out of 'for' loop
             } // end for: each byte read
@@ -1893,8 +1919,9 @@ public class Base64 {
                         position = 0;
                     } // end if: enough to output
                 } // end if: meaningful base64 character
-                else if (decodabet[theByte & 0x7f] != WHITE_SPACE_ENC)
+                else if (decodabet[theByte & 0x7f] != WHITE_SPACE_ENC) {
                     throw new java.io.IOException("Invalid character in Base64 data.");
+                }
             } // end else: decoding
         } // end write
 
@@ -1935,8 +1962,9 @@ public class Base64 {
                     out.write(encode3to4(b4, buffer, position, options));
                     position = 0;
                 } // end if: encoding
-                else
+                else {
                     throw new java.io.IOException("Base64 input not properly padded.");
+                }
             } // end if: buffer partially full
 
         } // end flush

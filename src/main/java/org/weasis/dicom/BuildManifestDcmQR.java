@@ -26,7 +26,7 @@ import org.weasis.launcher.wado.SOPInstance;
 import org.weasis.launcher.wado.Series;
 import org.weasis.launcher.wado.Study;
 
-public class Manifest {
+public class BuildManifestDcmQR {
     /*
      * Two DICOM actors:
      * 
@@ -35,7 +35,7 @@ public class Manifest {
      * nodeSource: DICOM node that responds to the query (PACS)
      */
 
-    private static final Logger log = LoggerFactory.getLogger(Manifest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildManifestDcmQR.class);
 
     public static List<Patient> buildFromPatientID(DicomNode nodeSource, String callingAet, String patientID)
         throws Exception {
@@ -306,17 +306,17 @@ public class Manifest {
             if (dcmqr.isCFind()) {
                 long t2 = System.currentTimeMillis();
                 result = dcmqr.query();
-                log.info("Received {} matching entries in {} s", Integer.valueOf(result.size()),
+                LOGGER.info("Received {} matching entries in {} s", Integer.valueOf(result.size()),
                     Float.valueOf((System.currentTimeMillis() - t2) / 1000f));
             }
-            log.info("Released connection to " + nodeSource.getAet());
+            LOGGER.info("Released connection to " + nodeSource.getAet());
         } catch (IOException e) {
-            log.error("ERROR: Failed to perform c-find:" + e.getMessage());
-            log.debug(e.getMessage(), e);
+            LOGGER.error("ERROR: Failed to perform c-find:" + e.getMessage());
+            LOGGER.debug(e.getMessage(), e);
             return null;
         } catch (InterruptedException e) {
-            log.error("ERROR: Failed to execute c-find:" + e.getMessage());
-            log.debug(e.getMessage(), e);
+            LOGGER.error("ERROR: Failed to execute c-find:" + e.getMessage());
+            LOGGER.debug(e.getMessage(), e);
             return null;
         } finally {
             try {
@@ -368,7 +368,7 @@ public class Manifest {
             } else if (TLS.TLS_AES.equals(cipher)) {
                 dcmqr.setTlsAES_128_CBC();
             } else {
-                log.error("Invalid parameter for TLS encryption: " + cipher);
+                LOGGER.error("Invalid parameter for TLS encryption: " + cipher);
                 return false;
             }
 
@@ -393,7 +393,7 @@ public class Manifest {
             try {
                 dcmqr.initTLS();
             } catch (Exception e) {
-                log.error("ERROR: Failed to initialize TLS context:" + e.getMessage());
+                LOGGER.error("ERROR: Failed to initialize TLS context:" + e.getMessage());
                 return false;
             }
         }
@@ -402,12 +402,12 @@ public class Manifest {
         try {
             dcmqr.open();
         } catch (Exception e) {
-            log.error("ERROR: Failed to establish association:" + e.getMessage());
-            log.debug(e.getMessage(), e);
+            LOGGER.error("ERROR: Failed to establish association:" + e.getMessage());
+            LOGGER.debug(e.getMessage(), e);
             return false;
         }
         long t2 = System.currentTimeMillis();
-        log.info("Connected to {} in {} s", nodeSource.getAet(), Float.valueOf((t2 - t1) / 1000f));
+        LOGGER.info("Connected to {} in {} s", nodeSource.getAet(), Float.valueOf((t2 - t1) / 1000f));
         return true;
     }
 

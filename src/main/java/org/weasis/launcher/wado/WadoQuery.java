@@ -23,8 +23,8 @@ import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.weasis.dicom.util.FileUtil;
 import org.weasis.launcher.wado.WadoParameters.HttpTag;
-import org.weasis.launcher.wado.xml.FileUtil;
 import org.weasis.launcher.wado.xml.TagUtil;
 
 public class WadoQuery {
