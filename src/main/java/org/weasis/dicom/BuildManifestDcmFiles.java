@@ -118,4 +118,22 @@ public class BuildManifestDcmFiles {
             FileUtil.safeClose(dis);
         }
     }
+
+    public static void main(String[] args) {
+        for (String string : args) {
+            unpack(new File(string));
+        }
+
+    }
+
+    public static void unpack(File file) {
+        if (file != null) {
+            FileUtil.isZipFile(file);
+        }
+        // Should be a DICOM file
+        else {
+
+        }
+
+    }
 }

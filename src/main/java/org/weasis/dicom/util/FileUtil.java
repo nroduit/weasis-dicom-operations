@@ -199,4 +199,28 @@ public class FileUtil {
             }
         }
     }
+
+    public static boolean isZipFile(File file) {
+        byte[] magicDirEnd = { 0x50, 0x4b, 0x03, 0x04 };
+        FileInputStream inputStream = null;
+        boolean isZip = false;
+        try {
+            inputStream = new FileInputStream(file);
+            byte[] buffer = new byte[4];
+
+            if ((inputStream.read(buffer)) == 4) {
+                for (int k = 0; k < magicDirEnd.length; k++) {
+                    if (buffer[k] != magicDirEnd[k]) {
+                        return false;
+                    }
+                }
+                isZip = true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            FileUtil.safeClose(inputStream);
+        }
+        return isZip;
+    }
 }
