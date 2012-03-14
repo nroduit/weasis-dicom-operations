@@ -1,5 +1,7 @@
 package org.weasis.dicom.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,10 +12,10 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 import javax.imageio.stream.ImageInputStream;
 
@@ -229,38 +231,52 @@ public class FileUtil {
         return isZip;
     }
 
-    public static void unzip(File file, File outputDir) throws ZipException, IOException {
+    public static void unzip(File file, File outputDir) {
         if (file != null && outputDir != null) {
             int BUFFER = 2048;
-            byte buf[] = new byte[BUFFER];
+            byte buffer[] = new byte[BUFFER];
             outputDir.mkdirs();
 
-            ZipInputStream zipinputstream = null;
-            ZipEntry zipentry;
-            zipinputstream = new ZipInputStream(new FileInputStream(file));
-            zipentry = zipinputstream.getNextEntry();
-            while (zipentry != null) {
-                String entryName = zipentry.getName();
-                FileOutputStream fileoutputstream;
-                File newFile = new File(entryName);
-                String directory = newFile.getParent();
+            ZipFile zipFile = null;
+            try {
+                zipFile = new ZipFile(file);
+                Enumeration<? extends ZipEntry> e = zipFile.entries();
 
-                if (directory == null) {
-                    if (newFile.isDirectory()) {
-                        break;
+                while (e.hasMoreElements()) {
+                    ZipEntry entry = e.nextElement();
+
+                    File destinationPath = new File(outputDir, entry.getName());
+                    destinationPath.getParentFile().mkdirs();
+
+                    if (entry.isDirectory()) {
+                        continue;
+                    } else {
+                        BufferedInputStream bis = new BufferedInputStream(zipFile.getInputStream(entry));
+                        FileOutputStream fos = new FileOutputStream(destinationPath);
+                        BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
+
+                        int b;
+                        while ((b = bis.read(buffer, 0, BUFFER)) != -1) {
+                            bos.write(buffer, 0, b);
+                        }
+                        bos.close();
+                        bis.close();
                     }
+
                 }
 
-                fileoutputstream = new FileOutputStream(outputDir + entryName);
-                int n;
-                while ((n = zipinputstream.read(buf, 0, BUFFER)) > -1) {
-                    fileoutputstream.write(buf, 0, n);
+            } catch (Exception e) {
+                System.err.println("Error opening zip file" + e);
+            } finally {
+                try {
+                    if (zipFile != null) {
+                        zipFile.close();
+                    }
+                } catch (IOException ioe) {
+                    // Do nothing
                 }
-
-                fileoutputstream.close();
-                zipinputstream.closeEntry();
-                zipentry = zipinputstream.getNextEntry();
             }
+
         }
     }
 }

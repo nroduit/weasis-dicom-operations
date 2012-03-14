@@ -11,20 +11,16 @@
 package org.weasis.dicom;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InterruptedIOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipException;
 
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 import org.dcm4che2.io.DicomInputStream;
-import org.dcm4che2.io.DicomOutputStream;
+import org.dcm4che2.io.StopTagInputHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weasis.dicom.data.FileInfo;
@@ -68,7 +64,7 @@ public class BuildManifestDcmFiles {
                 }
             } else {
                 if (file[i].canRead()) {
-
+                    FileInfo info = readMetaData(file[i]);
                 }
             }
         }
@@ -77,21 +73,12 @@ public class BuildManifestDcmFiles {
         }
     }
 
-    /**
-     * @param inputStream
-     * @param out
-     * @param overrideList
-     * @return bytes transferred. O = error, -1 = all bytes has been transferred, other = bytes transferred before
-     *         interruption
-     */
-    public int writFile(InputStream inputStream, OutputStream out, FileInfo info) {
-        if (inputStream == null || out == null) {
-            return 0;
-        }
+    private FileInfo readMetaData(File file) {
+        FileInfo info = new FileInfo(file, "");
         DicomInputStream dis = null;
-        DicomOutputStream dos = null;
         try {
-            dis = new DicomInputStream(new BufferedInputStream(inputStream));
+            dis = new DicomInputStream(new BufferedInputStream(new FileInputStream(file)));
+            dis.setHandler(new StopTagInputHandler(Tag.PixelData));
             DicomObject dcm = dis.readDicomObject();
 
             info.setTsuid(dis.getTransferSyntax().uid());
@@ -103,21 +90,13 @@ public class BuildManifestDcmFiles {
             info.setSeriesUID(dcm.getString(Tag.SeriesInstanceUID));
             info.setSeriesDesc(dcm.getString(Tag.SeriesDescription, ""));
             info.setStudyDate(dcm.getDate(Tag.StudyDate, Tag.StudyTime));
-            info.setPatientID(dcm.getString(Tag.PatientID, "unkown"));
-
-            dos = new DicomOutputStream(new BufferedOutputStream(out));
-
-            dos.writeDicomFile(dcm);
-            return -1;
-        } catch (InterruptedIOException e) {
-            return e.bytesTransferred;
+            info.setPatientID(dcm.getString(Tag.PatientID, "unknown"));
         } catch (IOException e) {
             e.printStackTrace();
-            return 0;
         } finally {
-            FileUtil.safeClose(dos);
             FileUtil.safeClose(dis);
         }
+        return info;
     }
 
     public static void main(String[] args) {
@@ -130,19 +109,21 @@ public class BuildManifestDcmFiles {
     public static void unpack(File file) {
         File dicoms = null;
         if (FileUtil.isZipFile(file)) {
-            dicoms = new File("");
-            try {
-                FileUtil.unzip(file, dicoms);
-            } catch (ZipException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            dicoms = new File(System.getProperty("java.io.tmpdir", ""), FileUtil.nameWithoutExtension(file.getName()));
+            FileUtil.unzip(file, dicoms);
         }
         // Should be a DICOM file
         else {
             dicoms = file;
         }
+        if (dicoms != null) {
+            BuildManifestDcmFiles dicomReader = new BuildManifestDcmFiles(new File[] { dicoms }, true);
+            try {
+                List<Patient> pts = dicomReader.getPatientList();
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
     }
-
 }
