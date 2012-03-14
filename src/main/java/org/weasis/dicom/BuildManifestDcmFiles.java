@@ -19,6 +19,7 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipException;
 
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
@@ -127,13 +128,21 @@ public class BuildManifestDcmFiles {
     }
 
     public static void unpack(File file) {
-        if (file != null) {
-            FileUtil.isZipFile(file);
+        File dicoms = null;
+        if (FileUtil.isZipFile(file)) {
+            dicoms = new File("");
+            try {
+                FileUtil.unzip(file, dicoms);
+            } catch (ZipException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         // Should be a DICOM file
         else {
-
+            dicoms = file;
         }
-
     }
+
 }

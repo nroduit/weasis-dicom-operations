@@ -11,6 +11,9 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.URL;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipInputStream;
 
 import javax.imageio.stream.ImageInputStream;
 
@@ -201,26 +204,63 @@ public class FileUtil {
     }
 
     public static boolean isZipFile(File file) {
-        byte[] magicDirEnd = { 0x50, 0x4b, 0x03, 0x04 };
-        FileInputStream inputStream = null;
         boolean isZip = false;
-        try {
-            inputStream = new FileInputStream(file);
-            byte[] buffer = new byte[4];
+        if (file != null) {
+            byte[] magicDirEnd = { 0x50, 0x4b, 0x03, 0x04 };
+            FileInputStream inputStream = null;
+            try {
+                inputStream = new FileInputStream(file);
+                byte[] buffer = new byte[4];
 
-            if ((inputStream.read(buffer)) == 4) {
-                for (int k = 0; k < magicDirEnd.length; k++) {
-                    if (buffer[k] != magicDirEnd[k]) {
-                        return false;
+                if ((inputStream.read(buffer)) == 4) {
+                    for (int k = 0; k < magicDirEnd.length; k++) {
+                        if (buffer[k] != magicDirEnd[k]) {
+                            return false;
+                        }
                     }
+                    isZip = true;
                 }
-                isZip = true;
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                FileUtil.safeClose(inputStream);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            FileUtil.safeClose(inputStream);
         }
         return isZip;
+    }
+
+    public static void unzip(File file, File outputDir) throws ZipException, IOException {
+        if (file != null && outputDir != null) {
+            int BUFFER = 2048;
+            byte buf[] = new byte[BUFFER];
+            outputDir.mkdirs();
+
+            ZipInputStream zipinputstream = null;
+            ZipEntry zipentry;
+            zipinputstream = new ZipInputStream(new FileInputStream(file));
+            zipentry = zipinputstream.getNextEntry();
+            while (zipentry != null) {
+                String entryName = zipentry.getName();
+                FileOutputStream fileoutputstream;
+                File newFile = new File(entryName);
+                String directory = newFile.getParent();
+
+                if (directory == null) {
+                    if (newFile.isDirectory()) {
+                        break;
+                    }
+                }
+
+                fileoutputstream = new FileOutputStream(outputDir + entryName);
+                int n;
+                while ((n = zipinputstream.read(buf, 0, BUFFER)) > -1) {
+                    fileoutputstream.write(buf, 0, n);
+                }
+
+                fileoutputstream.close();
+                zipinputstream.closeEntry();
+                zipentry = zipinputstream.getNextEntry();
+            }
+        }
     }
 }
