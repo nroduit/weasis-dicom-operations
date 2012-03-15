@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.weasis.launcher.wado.TagElement;
+import org.weasis.launcher.wado.TagW;
 
 public class TagUtil {
     private static final String DELIM_START = "${";
@@ -66,7 +66,7 @@ public class TagUtil {
         return val;
     }
 
-    public static void addXmlAttribute(TagElement tag, String value, StringBuffer result) {
+    public static void addXmlAttribute(TagW tag, String value, StringBuffer result) {
         if (tag != null && value != null) {
             result.append(tag.getTagName());
             result.append("=\"");

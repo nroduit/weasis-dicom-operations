@@ -18,6 +18,7 @@ public class SOPInstance implements XmlDescription {
     private final String sopInstanceUID;
     private String transferSyntaxUID = null;
     private String instanceNumber = null;
+    private String directDownloadFile = null;
 
     public SOPInstance(String sopInstanceUID) {
         if (sopInstanceUID == null) {
@@ -46,13 +47,22 @@ public class SOPInstance implements XmlDescription {
         this.instanceNumber = instanceNumber == null ? null : instanceNumber.trim();
     }
 
+    public String getDirectDownloadFile() {
+        return directDownloadFile;
+    }
+
+    public void setDirectDownloadFile(String directDownloadFile) {
+        this.directDownloadFile = directDownloadFile;
+    }
+
     public String toXml() {
         StringBuffer result = new StringBuffer();
-        result.append("\n<" + TagElement.DICOM_LEVEL.Instance.name() + " ");
-        TagUtil.addXmlAttribute(TagElement.SOPInstanceUID, sopInstanceUID, result);
+        result.append("\n<" + TagW.DICOM_LEVEL.Instance.name() + " ");
+        TagUtil.addXmlAttribute(TagW.SOPInstanceUID, sopInstanceUID, result);
         // file_tsuid DICOM Transfer Syntax UID (0002,0010)
-        TagUtil.addXmlAttribute(TagElement.TransferSyntaxUID, transferSyntaxUID, result);
-        TagUtil.addXmlAttribute(TagElement.InstanceNumber, instanceNumber, result);
+        TagUtil.addXmlAttribute(TagW.TransferSyntaxUID, transferSyntaxUID, result);
+        TagUtil.addXmlAttribute(TagW.InstanceNumber, instanceNumber, result);
+        TagUtil.addXmlAttribute(TagW.DirectDownloadFile, directDownloadFile, result);
         result.append("/>");
 
         return result.toString();

@@ -98,14 +98,14 @@ public class Study implements XmlDescription {
     public String toXml() {
         StringBuffer result = new StringBuffer();
         if (studyInstanceUID != null) {
-            result.append("\n<" + TagElement.DICOM_LEVEL.Study.name() + " ");
-            TagUtil.addXmlAttribute(TagElement.StudyInstanceUID, studyInstanceUID, result);
-            TagUtil.addXmlAttribute(TagElement.StudyDescription, studyDescription, result);
-            TagUtil.addXmlAttribute(TagElement.StudyDate, studyDate, result);
-            TagUtil.addXmlAttribute(TagElement.StudyTime, studyTime, result);
-            TagUtil.addXmlAttribute(TagElement.AccessionNumber, accessionNumber, result);
-            TagUtil.addXmlAttribute(TagElement.StudyID, studyID, result);
-            TagUtil.addXmlAttribute(TagElement.ReferringPhysicianName, ReferringPhysicianName, result);
+            result.append("\n<" + TagW.DICOM_LEVEL.Study.name() + " ");
+            TagUtil.addXmlAttribute(TagW.StudyInstanceUID, studyInstanceUID, result);
+            TagUtil.addXmlAttribute(TagW.StudyDescription, studyDescription, result);
+            TagUtil.addXmlAttribute(TagW.StudyDate, studyDate, result);
+            TagUtil.addXmlAttribute(TagW.StudyTime, studyTime, result);
+            TagUtil.addXmlAttribute(TagW.AccessionNumber, accessionNumber, result);
+            TagUtil.addXmlAttribute(TagW.StudyID, studyID, result);
+            TagUtil.addXmlAttribute(TagW.ReferringPhysicianName, ReferringPhysicianName, result);
             result.append(">");
             Collections.sort(seriesList, new Comparator<Series>() {
 

@@ -28,6 +28,7 @@ public class Series implements XmlDescription {
     private String wadoTransferSyntaxUID = null;
     // Image quality within the range 1 to 100, 100 being the best quality.
     private int wadoCompression = 0;
+    private String thumbnail = null;
 
     public Series(String seriesInstanceUID) {
         if (seriesInstanceUID == null) {
@@ -95,6 +96,14 @@ public class Series implements XmlDescription {
         this.modality = modality;
     }
 
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
+    }
+
     public ArrayList<SOPInstance> getSopInstancesList() {
         return sopInstancesList;
     }
@@ -102,16 +111,17 @@ public class Series implements XmlDescription {
     public String toXml() {
         StringBuffer result = new StringBuffer();
         if (seriesInstanceUID != null) {
-            result.append("\n<" + TagElement.DICOM_LEVEL.Series.name() + " ");
-            TagUtil.addXmlAttribute(TagElement.SeriesInstanceUID, seriesInstanceUID, result);
-            TagUtil.addXmlAttribute(TagElement.SeriesDescription, seriesDescription, result);
-            TagUtil.addXmlAttribute(TagElement.SeriesNumber, seriesNumber, result);
-            TagUtil.addXmlAttribute(TagElement.Modality, modality, result);
+            result.append("\n<" + TagW.DICOM_LEVEL.Series.name() + " ");
+            TagUtil.addXmlAttribute(TagW.SeriesInstanceUID, seriesInstanceUID, result);
+            TagUtil.addXmlAttribute(TagW.SeriesDescription, seriesDescription, result);
+            TagUtil.addXmlAttribute(TagW.SeriesNumber, seriesNumber, result);
+            TagUtil.addXmlAttribute(TagW.Modality, modality, result);
             // file_tsuid DICOM Transfer Syntax UID (0002,0010)
-            TagUtil.addXmlAttribute(TagElement.TransferSyntaxUID, transferSyntaxUID, result);
-            TagUtil.addXmlAttribute(TagElement.WadoTransferSyntaxUID, wadoTransferSyntaxUID, result);
-            TagUtil.addXmlAttribute(TagElement.WadoCompressionRate, wadoCompression < 1 ? null : "" + wadoCompression,
-                result);
+            TagUtil.addXmlAttribute(TagW.TransferSyntaxUID, transferSyntaxUID, result);
+            TagUtil.addXmlAttribute(TagW.DirectDownloadThumbnail, thumbnail, result);
+            TagUtil.addXmlAttribute(TagW.WadoTransferSyntaxUID, wadoTransferSyntaxUID, result);
+            TagUtil
+                .addXmlAttribute(TagW.WadoCompressionRate, wadoCompression < 1 ? null : "" + wadoCompression, result);
             result.append(">");
             Collections.sort(sopInstancesList, new Comparator<SOPInstance>() {
 

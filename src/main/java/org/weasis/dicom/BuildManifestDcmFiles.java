@@ -13,9 +13,12 @@ package org.weasis.dicom;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
@@ -23,9 +26,14 @@ import org.dcm4che2.io.DicomInputStream;
 import org.dcm4che2.io.StopTagInputHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.weasis.dicom.data.FileInfo;
 import org.weasis.dicom.util.FileUtil;
 import org.weasis.launcher.wado.Patient;
+import org.weasis.launcher.wado.SOPInstance;
+import org.weasis.launcher.wado.Series;
+import org.weasis.launcher.wado.Study;
+import org.weasis.launcher.wado.WadoParameters;
+import org.weasis.launcher.wado.WadoQuery;
+import org.weasis.launcher.wado.WadoQueryException;
 
 public class BuildManifestDcmFiles {
 
@@ -33,20 +41,33 @@ public class BuildManifestDcmFiles {
 
     private final boolean recursive;
     private final File[] files;
+    private final List<Patient> patientList;
+    private final Map<File, SOPInstance> dicomMap;
+    private final Map<File, Series> thumbnailMap;
 
     public BuildManifestDcmFiles(File[] files, boolean recursive) {
         this.files = files;
         this.recursive = recursive;
+        this.patientList = new ArrayList<Patient>();
+        this.dicomMap = new HashMap<File, SOPInstance>();
+        this.thumbnailMap = new HashMap<File, Series>();
     }
 
-    public List<Patient> getPatientList() throws Exception {
+    public Map<File, Series> getThumbnailMap() {
+        return thumbnailMap;
+    }
+
+    public Map<File, SOPInstance> getDicomMap() {
+        return dicomMap;
+    }
+
+    public List<Patient> getPatientList() {
         if (files == null || files.length == 0) {
             return null;
         }
+        patientList.clear();
+        dicomMap.clear();
         addSelectionAndnotify(files, true);
-
-        List<Patient> patientList = new ArrayList<Patient>();
-
         return patientList;
     }
 
@@ -64,7 +85,7 @@ public class BuildManifestDcmFiles {
                 }
             } else {
                 if (file[i].canRead()) {
-                    FileInfo info = readMetaData(file[i]);
+                    readMetaData(file[i]);
                 }
             }
         }
@@ -73,35 +94,86 @@ public class BuildManifestDcmFiles {
         }
     }
 
-    private FileInfo readMetaData(File file) {
-        FileInfo info = new FileInfo(file, "");
+    private Patient getPatient(final DicomObject dcm) throws Exception {
+        String uid = dcm.getString(Tag.PatientID, "Unknown");
+        for (Patient p : patientList) {
+            if (p.getPatientID().equals(uid)) {
+                return p;
+            }
+        }
+        Patient p = new Patient(uid);
+        p.setPatientName(dcm.getString(Tag.PatientName, "Unknown"));
+        p.setPatientBirthDate(dcm.getString(Tag.PatientBirthDate));
+        // p.setPatientBirthTime(patientDataset.getString(Tag.PatientBirthTime));
+        p.setPatientSex(dcm.getString(Tag.PatientSex));
+        patientList.add(p);
+        return p;
+    }
+
+    private Study getStudy(Patient patient, final DicomObject dcm) throws Exception {
+        String uid = dcm.getString(Tag.StudyInstanceUID);
+        Study s = patient.getStudy(uid);
+        if (s == null) {
+            s = new Study(uid);
+            s.setStudyDescription(dcm.getString(Tag.StudyDescription));
+            s.setStudyDate(dcm.getString(Tag.StudyDate));
+            s.setStudyTime(dcm.getString(Tag.StudyTime));
+            s.setAccessionNumber(dcm.getString(Tag.AccessionNumber));
+            s.setStudyID(dcm.getString(Tag.StudyID));
+            s.setReferringPhysicianName(dcm.getString(Tag.ReferringPhysicianName));
+            patient.addStudy(s);
+        }
+        return s;
+    }
+
+    private Series getSeries(Study study, final DicomObject dcm) throws Exception {
+        String uid = dcm.getString(Tag.SeriesInstanceUID);
+        Series s = study.getSeries(uid);
+        if (s == null) {
+            s = new Series(uid);
+            s.setModality(dcm.getString(Tag.Modality));
+            s.setSeriesNumber(dcm.getString(Tag.SeriesNumber));
+            s.setSeriesDescription(dcm.getString(Tag.SeriesDescription));
+            study.addSeries(s);
+        }
+        return s;
+    }
+
+    private void readMetaData(File file) {
         DicomInputStream dis = null;
         try {
             dis = new DicomInputStream(new BufferedInputStream(new FileInputStream(file)));
             dis.setHandler(new StopTagInputHandler(Tag.PixelData));
             DicomObject dcm = dis.readDicomObject();
+            // Exclude DICOMDIR
+            if (dcm == null || "1.2.840.10008.1.3.10".equals(dcm.getString(Tag.MediaStorageSOPClassUID, ""))) {
+                return;
+            }
 
-            info.setTsuid(dis.getTransferSyntax().uid());
-            info.setFmiEndPos(dis.getEndOfFileMetaInfoPosition());
-            info.setCuid(dcm.getString(Tag.SOPClassUID));
-            info.setIuid(dcm.getString(Tag.SOPInstanceUID));
-            info.setStudyUID(dcm.getString(Tag.StudyInstanceUID));
-            info.setStudyDesc(dcm.getString(Tag.StudyDescription, ""));
-            info.setSeriesUID(dcm.getString(Tag.SeriesInstanceUID));
-            info.setSeriesDesc(dcm.getString(Tag.SeriesDescription, ""));
-            info.setStudyDate(dcm.getDate(Tag.StudyDate, Tag.StudyTime));
-            info.setPatientID(dcm.getString(Tag.PatientID, "unknown"));
-        } catch (IOException e) {
-            e.printStackTrace();
+            Patient patient = getPatient(dcm);
+            Study study = getStudy(patient, dcm);
+            Series s = getSeries(study, dcm);
+            String sopUID = dcm.getString(Tag.SOPInstanceUID);
+            if (sopUID != null) {
+                SOPInstance sop = new SOPInstance(sopUID);
+                sop.setTransferSyntaxUID(dis.getTransferSyntax().uid());
+                sop.setInstanceNumber(dcm.getString(Tag.InstanceNumber));
+                s.addSOPInstance(sop);
+                dicomMap.put(file, sop);
+            }
+        } catch (Exception e) {
+            // TODO record problem?
+            LOGGER.error("Cannot read {}, {}", file, e.getMessage());
         } finally {
             FileUtil.safeClose(dis);
         }
-        return info;
+        return;
     }
 
     public static void main(String[] args) {
         for (String string : args) {
             unpack(new File(string));
+
         }
 
     }
@@ -111,19 +183,84 @@ public class BuildManifestDcmFiles {
         if (FileUtil.isZipFile(file)) {
             dicoms = new File(System.getProperty("java.io.tmpdir", ""), FileUtil.nameWithoutExtension(file.getName()));
             FileUtil.unzip(file, dicoms);
-        }
-        // Should be a DICOM file
-        else {
+        } else {
+            // Should be a DICOM file
             dicoms = file;
         }
         if (dicoms != null) {
             BuildManifestDcmFiles dicomReader = new BuildManifestDcmFiles(new File[] { dicoms }, true);
-            try {
-                List<Patient> pts = dicomReader.getPatientList();
-            } catch (Exception e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+            List<Patient> patients = dicomReader.getPatientList();
+            Map<File, Series> thumMap = dicomReader.getThumbnailMap();
+            for (Patient patient : patients) {
+                for (Study study : patient.getStudies()) {
+                    for (Series series : study.getSeriesList()) {
+                        // TODO build thumbnail
+
+                        // File thumb = null;
+                        // try {
+                        // thumb = File.createTempFile("thumb", ".jpg");
+                        // } catch (IOException e) {
+                        // e.printStackTrace();
+                        // }
+                        // thumMap.put(thumb, series);
+                    }
+                }
             }
+            if (patients == null || patients.size() < 1) {
+                LOGGER.warn("No data has been found!");
+                return;
+            }
+            /******** Store files ********/
+            // Store DICOMs
+            Map<File, SOPInstance> dicomMap = dicomReader.getDicomMap();
+            for (Iterator<Entry<File, SOPInstance>> iter = dicomMap.entrySet().iterator(); iter.hasNext();) {
+                Entry<File, SOPInstance> element = iter.next();
+                File dicomFile = element.getKey();
+                // store dicomFile
+                // Can set the full URL or only the end part, the base part can be set below in wadoURL
+                element.getValue().setDirectDownloadFile("urlFromStore");
+            }
+
+            // Store thumbnails
+            for (Iterator<Entry<File, Series>> iter = thumMap.entrySet().iterator(); iter.hasNext();) {
+                Entry<File, Series> element = iter.next();
+                File thumbFile = element.getKey();
+                // store thumbFile
+                // Can set the full URL or only the end part, the base part can be set below in wadoURL
+                element.getValue().setThumbnail("urlFromStore");
+            }
+            /******** Store files ********/
+
+            try {
+                // If the web server requires an authentication (pacs.web.login=user:pwd)
+                String webLogin = null;
+                // String webLogin = pacsProperties.getProperty("pacs.web.login", null);
+                // if (webLogin != null) {
+                // webLogin = Base64.encodeBytes(webLogin.trim().getBytes());
+                //
+                // }
+
+                String wadoURL = "baseURL";
+                String httpTags = null;
+
+                WadoParameters wado = new WadoParameters(wadoURL, false, "", null, webLogin);
+                // if (httpTags != null && !httpTags.trim().equals("")) {
+                // for (String tag : httpTags.split(",")) {
+                // String[] val = tag.split(":");
+                // if (val.length == 2) {
+                // wado.addHttpTag(val[0].trim(), val[1].trim());
+                // }
+                // }
+                // }
+                WadoQuery wadoQuery = new WadoQuery(patients, wado, "utf-8");
+                // ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+                // WadoQuery.gzipCompress(new ByteArrayInputStream(wadoQuery.toString().getBytes()), outStream);
+                // wadoQueryFile = Base64.encodeBytes(wadoQuery.toString().getBytes(), Base64.GZIP);
+
+            } catch (WadoQueryException e) {
+                LOGGER.error(e.getMessage());
+            }
+
         }
     }
 }

@@ -107,13 +107,13 @@ public class Patient implements XmlDescription {
     public String toXml() {
         StringBuffer result = new StringBuffer();
         if (patientID != null && patientName != null) {
-            result.append("\n<" + TagElement.DICOM_LEVEL.Patient.name() + " ");
+            result.append("\n<" + TagW.DICOM_LEVEL.Patient.name() + " ");
 
-            TagUtil.addXmlAttribute(TagElement.PatientID, patientID, result);
-            TagUtil.addXmlAttribute(TagElement.PatientName, patientName, result);
-            TagUtil.addXmlAttribute(TagElement.PatientBirthDate, patientBirthDate, result);
-            TagUtil.addXmlAttribute(TagElement.PatientBirthTime, patientBirthTime, result);
-            TagUtil.addXmlAttribute(TagElement.PatientSex, patientSex, result);
+            TagUtil.addXmlAttribute(TagW.PatientID, patientID, result);
+            TagUtil.addXmlAttribute(TagW.PatientName, patientName, result);
+            TagUtil.addXmlAttribute(TagW.PatientBirthDate, patientBirthDate, result);
+            TagUtil.addXmlAttribute(TagW.PatientBirthTime, patientBirthTime, result);
+            TagUtil.addXmlAttribute(TagW.PatientSex, patientSex, result);
             result.append(">");
 
             Collections.sort(studiesList, new Comparator<Study>() {
