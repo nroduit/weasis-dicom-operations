@@ -13,12 +13,15 @@ package org.weasis.dicom;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.zip.GZIPOutputStream;
 
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
@@ -172,16 +175,17 @@ public class BuildManifestDcmFiles {
 
     public static void main(String[] args) {
         for (String string : args) {
-            unpack(new File(string));
+            buildManifest(new File(string));
 
         }
 
     }
 
-    public static void unpack(File file) {
+    public static void buildManifest(File file) {
+        File tmpDir = new File(System.getProperty("java.io.tmpdir", ""), FileUtil.nameWithoutExtension(file.getName()));
         File dicoms = null;
         if (FileUtil.isZipFile(file)) {
-            dicoms = new File(System.getProperty("java.io.tmpdir", ""), FileUtil.nameWithoutExtension(file.getName()));
+            dicoms = tmpDir;
             FileUtil.unzip(file, dicoms);
         } else {
             // Should be a DICOM file
@@ -210,27 +214,35 @@ public class BuildManifestDcmFiles {
                 LOGGER.warn("No data has been found!");
                 return;
             }
-            /******** Store files ********/
-            // Store DICOMs
+
             Map<File, SOPInstance> dicomMap = dicomReader.getDicomMap();
             for (Iterator<Entry<File, SOPInstance>> iter = dicomMap.entrySet().iterator(); iter.hasNext();) {
                 Entry<File, SOPInstance> element = iter.next();
                 File dicomFile = element.getKey();
-                // store dicomFile
+                // TODO store dicomFile
                 // Can set the full URL or only the end part, the base part can be set below in wadoURL
+                // TODO replace urlFromStore
                 element.getValue().setDirectDownloadFile("urlFromStore");
             }
 
-            // Store thumbnails
             for (Iterator<Entry<File, Series>> iter = thumMap.entrySet().iterator(); iter.hasNext();) {
                 Entry<File, Series> element = iter.next();
                 File thumbFile = element.getKey();
-                // store thumbFile
+                // TODO store thumbFile
                 // Can set the full URL or only the end part, the base part can be set below in wadoURL
+                // TODO replace urlFromStore
                 element.getValue().setThumbnail("urlFromStore");
             }
-            /******** Store files ********/
 
+            File manifestFile = null;
+            try {
+                manifestFile = File.createTempFile("mft", ".gz", tmpDir);
+            } catch (IOException e1) {
+                LOGGER.error("Cannot create the manifest file, {}", e1.getMessage());
+                return;
+            }
+            FileOutputStream stream = null;
+            GZIPOutputStream gz = null;
             try {
                 // If the web server requires an authentication (pacs.web.login=user:pwd)
                 String webLogin = null;
@@ -240,10 +252,11 @@ public class BuildManifestDcmFiles {
                 //
                 // }
 
+                // TODO Change to base server URL (get it from properties)
                 String wadoURL = "baseURL";
-                String httpTags = null;
+                WadoParameters wado = new WadoParameters(wadoURL, false, null, null, webLogin);
 
-                WadoParameters wado = new WadoParameters(wadoURL, false, "", null, webLogin);
+                // String httpTags = null;
                 // if (httpTags != null && !httpTags.trim().equals("")) {
                 // for (String tag : httpTags.split(",")) {
                 // String[] val = tag.split(":");
@@ -253,14 +266,21 @@ public class BuildManifestDcmFiles {
                 // }
                 // }
                 WadoQuery wadoQuery = new WadoQuery(patients, wado, "utf-8");
-                // ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-                // WadoQuery.gzipCompress(new ByteArrayInputStream(wadoQuery.toString().getBytes()), outStream);
-                // wadoQueryFile = Base64.encodeBytes(wadoQuery.toString().getBytes(), Base64.GZIP);
 
+                // Set gzip compression to the manifest
+                stream = new FileOutputStream(manifestFile);
+                gz = new GZIPOutputStream(stream);
+                gz.write(wadoQuery.toString().getBytes());
+            } catch (Exception e) {
+                LOGGER.error("Cannot write the manifest, {}", e.getMessage());
             } catch (WadoQueryException e) {
-                LOGGER.error(e.getMessage());
+                LOGGER.error("Cannot build the manifest, {}", e.getMessage());
+            } finally {
+                FileUtil.safeClose(gz);
+                FileUtil.safeClose(stream);
             }
 
+            // TODO Store the manifest "manifestFile"
         }
     }
 }
