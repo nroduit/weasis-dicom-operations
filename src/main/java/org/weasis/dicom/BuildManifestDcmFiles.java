@@ -271,6 +271,7 @@ public class BuildManifestDcmFiles {
                 stream = new FileOutputStream(manifestFile);
                 gz = new GZIPOutputStream(stream);
                 gz.write(wadoQuery.toString().getBytes());
+                LOGGER.info("The manifest has been created: {}", manifestFile);
             } catch (Exception e) {
                 LOGGER.error("Cannot write the manifest, {}", e.getMessage());
             } catch (WadoQueryException e) {
@@ -281,6 +282,13 @@ public class BuildManifestDcmFiles {
             }
 
             // TODO Store the manifest "manifestFile"
+            // Delete the temporary directory
+            FileUtil.deleteDirectory(tmpDir);
+            // TODO if not a zip but just DICOM file, delete the source ?
+            if (tmpDir != dicoms) {
+                // file.delete();
+            }
+
         }
     }
 }
