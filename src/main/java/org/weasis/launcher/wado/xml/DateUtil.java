@@ -27,9 +27,9 @@ public class DateUtil {
 
     public static String TIME_FORMAT = "HHmmss";
 
-    public static SimpleDateFormat WeasisTimeFormat = new SimpleDateFormat(TIME_FORMAT);
+    public static SimpleDateFormat DicomTimeFormat = new SimpleDateFormat(TIME_FORMAT);
 
-    public static SimpleDateFormat WeasisDateFormat = new SimpleDateFormat(DATE_FORMAT);
+    public static SimpleDateFormat DicomDateFormat = new SimpleDateFormat(DATE_FORMAT);
 
     public static String getTimestamp(ResultSet resultSet, String field, String targetFormat) {
         String result = null;
@@ -61,7 +61,7 @@ public class DateUtil {
             logger.error("Date Error: cannot convert the date [{}]", dateInput);
         }
         if (date != null) {
-            result = WeasisDateFormat.format(date);
+            result = DicomDateFormat.format(date);
             logger.debug("Date [{}] converted to [{}]", date, result);
         }
         return result;
@@ -110,7 +110,7 @@ public class DateUtil {
     public static java.util.Date getDate(String dateInput) {
         if (dateInput != null) {
             try {
-                java.util.Date date = WeasisDateFormat.parse(dateInput);
+                java.util.Date date = DicomDateFormat.parse(dateInput);
                 return date;
             } catch (Exception e) {
             }
@@ -121,7 +121,7 @@ public class DateUtil {
     public static java.util.Date getTime(String dateInput) {
         if (dateInput != null) {
             try {
-                java.util.Date date = WeasisTimeFormat.parse(dateInput);
+                java.util.Date date = DicomTimeFormat.parse(dateInput);
                 return date;
             } catch (Exception e) {
             }

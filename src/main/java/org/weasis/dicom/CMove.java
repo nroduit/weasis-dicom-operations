@@ -12,12 +12,19 @@ package org.weasis.dicom;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.dcm4che2.data.BasicDicomObject;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 import org.dcm4che2.data.VR;
+import org.dcm4che2.tool.dcmmover.DcmMover;
+import org.dcm4che2.tool.dcmmover.DcmMoverCli;
+import org.dcm4che2.tool.dcmmover.MoveResponse;
+import org.dcm4che2.tool.dcmmover.ObjectTransformData;
 import org.dcm4che2.tool.dcmqr.DcmQR;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,33 +34,33 @@ public class CMove {
     /*
      * Three DICOM actors:
      * 
-     * nodeCalling: DICOM node that makes the initial request
+     * callingNode: DICOM node that makes the initial request
      * 
-     * nodeSource: DICOM node that provides the images (PACS)
+     * calledNode: DICOM node that provides the images (PACS)
      * 
-     * nodeDesitination: DICOM node that receives the images
+     * destinationNode: DICOM node that receives the images
      */
 
     private static final Logger log = LoggerFactory.getLogger(CMove.class);
 
-    public static boolean cmove(DicomNode nodeSource, String callingAet, String aetDestination, String patientID,
+    public static boolean cmove(DicomNode calledNode, String callingAet, String destinationAet, String patientID,
         String studyInstanceUID, String seriesInstanceUID) {
-        return cmove(nodeSource, null, callingAet, aetDestination, patientID, studyInstanceUID, seriesInstanceUID);
+        return cmove(calledNode, null, callingAet, destinationAet, patientID, studyInstanceUID, seriesInstanceUID);
     }
 
-    public static boolean cmove(DicomNode nodeSource, String callingAet, String aetDestination, String patientID,
+    public static boolean cmove(DicomNode calledNode, String callingAet, String destinationAet, String patientID,
         String studyInstanceUID) {
-        return cmove(nodeSource, null, callingAet, aetDestination, patientID, studyInstanceUID, null);
+        return cmove(calledNode, null, callingAet, destinationAet, patientID, studyInstanceUID, null);
     }
 
-    public static boolean cmove(DicomNode nodeSource, String callingAet, String aetDestination, RetrieveData data) {
-        return cmove(nodeSource, null, callingAet, aetDestination, data);
+    public static boolean cmove(DicomNode calledNode, String callingAet, String destinationAet, RetrieveData data) {
+        return cmove(calledNode, null, callingAet, destinationAet, data);
     }
 
-    public static boolean cmove(DicomNode nodeSource, EncryptionTLS tls, String callingAet, String aetDestination,
+    public static boolean cmove(DicomNode calledNode, EncryptionTLS tls, String callingAet, String destinationAet,
         String patientID, String studyInstanceUID, String seriesInstanceUID) {
         DcmQR dcmqr = new DcmQR(callingAet);
-        boolean init = initMove(nodeSource, tls, dcmqr, aetDestination);
+        boolean init = initMove(calledNode, tls, dcmqr, destinationAet);
         if (!init) {
             return false;
         }
@@ -66,7 +73,7 @@ public class CMove {
             dcm.putString(Tag.SeriesInstanceUID, VR.UI, seriesInstanceUID);
             result.add(dcm);
             dcmqr.move(result);
-            log.info("Released connection to " + nodeSource.getAet());
+            log.info("Released connection to " + calledNode.getAet());
         } catch (IOException e) {
             log.error("ERROR: Failed to perform c-move:" + e.getMessage());
             log.debug(e.getMessage(), e);
@@ -84,14 +91,14 @@ public class CMove {
         return true;
     }
 
-    public static boolean cmove(DicomNode nodeSource, EncryptionTLS tls, String callingAet, String aetDestination,
+    public static boolean cmove(DicomNode calledNode, EncryptionTLS tls, String callingAet, String destinationAet,
         RetrieveData data) {
         if (data == null) {
             log.error("Manifest data for c-move cannot be null");
             return false;
         }
         DcmQR dcmqr = new DcmQR(callingAet);
-        boolean init = initMove(nodeSource, tls, dcmqr, aetDestination);
+        boolean init = initMove(calledNode, tls, dcmqr, destinationAet);
         if (!init) {
             return false;
         }
@@ -109,7 +116,7 @@ public class CMove {
                 return false;
             }
             dcmqr.move(result);
-            log.info("Released connection to " + nodeSource.getAet());
+            log.info("Released connection to " + calledNode.getAet());
         } catch (IOException e) {
             log.error("Failed to perform c-move:" + e.getMessage());
             log.debug(e.getMessage(), e);
@@ -127,18 +134,18 @@ public class CMove {
         return true;
     }
 
-    private static boolean initMove(DicomNode nodeSource, EncryptionTLS tls, DcmQR dcmqr, String aetDestination) {
+    private static boolean initMove(DicomNode calledNode, EncryptionTLS tls, DcmQR dcmqr, String destinationAet) {
 
-        dcmqr.setCalledAET(nodeSource.getAet(), false);
-        dcmqr.setRemoteHost(nodeSource.getHostname());
-        dcmqr.setRemotePort(nodeSource.getPort());
+        dcmqr.setCalledAET(calledNode.getAet(), false);
+        dcmqr.setRemoteHost(calledNode.getHostname());
+        dcmqr.setRemotePort(calledNode.getPort());
         dcmqr.setPackPDV(true);
         dcmqr.setTcpNoDelay(true);
         dcmqr.setMaxOpsInvoked(1);
         dcmqr.setMaxOpsPerformed(0);
         dcmqr.setCFind(true);
         dcmqr.setCGet(false);
-        dcmqr.setMoveDest(aetDestination);
+        dcmqr.setMoveDest(destinationAet);
 
         dcmqr.configureTransferCapability(false);
 
@@ -190,8 +197,68 @@ public class CMove {
             return false;
         }
         long t2 = System.currentTimeMillis();
-        log.info("Connected to {} in {} s", aetDestination, Float.valueOf((t2 - t1) / 1000f));
+        log.info("Connected to {} in {} s", destinationAet, Float.valueOf((t2 - t1) / 1000f));
         return true;
     }
 
+    private static boolean dcmMover(DicomNode callingNode, DicomNode calledNode, DicomNode destinationNode,
+        String studyInstanceUID, Map<Integer, String> tags, boolean generateNewUIDs) {
+
+        DcmMover dcmMover = new DcmMover(generateNewUIDs);
+        dcmMover.setStorageCommitment(false);
+        dcmMover.setTcpNoDelay(true);
+
+        // calling DICOM Node
+        dcmMover.setAET(callingNode.getAet());
+        dcmMover.setLocalHost(callingNode.getHostname());
+        dcmMover.setReceiveSCPListenPort(callingNode.getPort());
+
+        // called DICOM Node
+        dcmMover.setQRSCUCalledAET(calledNode.getAet());
+        dcmMover.setQRSCURemoteHost(calledNode.getHostname());
+        dcmMover.setQRSCURemotePort(calledNode.getPort());
+
+        // Destination DICOM Node
+        dcmMover.setSendSCUCalledAET(destinationNode.getAet());
+        dcmMover.setSendSCURemoteHost(destinationNode.getHostname());
+        dcmMover.setSendSCURemotePort(destinationNode.getPort());
+
+        if (tags.isEmpty()) {
+            return false;
+        }
+
+        ObjectTransformData xformObjData = new ObjectTransformData();
+        for (Iterator<Entry<Integer, String>> iter = tags.entrySet().iterator(); iter.hasNext();) {
+            Entry<Integer, String> element = iter.next();
+            Integer tag = element.getKey();
+            String value = element.getValue();
+            if (value == null) {
+                xformObjData.addAttrToRemove(tag);
+            } else {
+                DcmMoverCli.addPatientStudyDataToXform(xformObjData, tag, value);
+            }
+        }
+        // Do the move - syncronously or async
+        log.info("AE {} starting move {} of study [{}] from AE {} to AE {}",
+            new Object[] { callingNode.getAet(), (xformObjData == null ? "" : "with transformation"), studyInstanceUID,
+                calledNode.getAet(), destinationNode.getAet() });
+
+        MoveResponse response = null;
+        try {
+            response = dcmMover.moveStudy(studyInstanceUID, xformObjData);
+        } catch (Exception e) {
+            log.error("Move of study [{}] FAILED.", studyInstanceUID);
+            log.error(e.getMessage());
+        }
+        if (response != null) {
+            if (response.moveSuccessful() == true) {
+                log.info("Move of study [{}] succeeded.", studyInstanceUID);
+            } else {
+                log.error("Move of study [{}] FAILED.", studyInstanceUID);
+            }
+            log.info(response.toString());
+        }
+        return true;
+
+    }
 }

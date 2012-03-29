@@ -1,10 +1,13 @@
 package org.weasis.dicom.data;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.Date;
 
 public final class FileInfo {
-
+    public static final int KB = 1024;
+    public static final int MB = KB * KB;
+    public static final DecimalFormat DoubleFormat = new DecimalFormat("###0.##");
     // State in the Gateway workflow from SOURCE to Destination
     public static final int SOURCE = 50;
     public static final int LOCAL = 100;
@@ -143,4 +146,11 @@ public final class FileInfo {
         return file;
     }
 
+    public static String getBytes(double totalSizeSent) {
+        if (totalSizeSent > MB) {
+            return DoubleFormat.format(totalSizeSent / MB) + " MB";
+        } else {
+            return DoubleFormat.format(totalSizeSent / KB) + " KB";
+        }
+    }
 }
