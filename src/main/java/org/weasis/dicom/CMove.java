@@ -201,7 +201,7 @@ public class CMove {
         return true;
     }
 
-    private static boolean dcmMover(DicomNode callingNode, DicomNode calledNode, DicomNode destinationNode,
+    public static boolean dcmMover(DicomNode callingNode, DicomNode calledNode, DicomNode destinationNode,
         String studyInstanceUID, Map<Integer, String> tags, boolean generateNewUIDs) {
 
         DcmMover dcmMover = new DcmMover(generateNewUIDs);
