@@ -35,4 +35,15 @@ public class DicomNode {
         return port;
     }
 
+    @Override
+    public String toString() {
+        StringBuffer buf = new StringBuffer("Hostname:");
+        buf.append(hostname);
+        buf.append(" AET:");
+        buf.append(aet);
+        buf.append(" Port:");
+        buf.append(port);
+        return buf.toString();
+    }
+
 }
