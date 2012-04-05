@@ -27,6 +27,7 @@ import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 import org.dcm4che2.io.DicomInputStream;
 import org.dcm4che2.io.StopTagInputHandler;
+import org.dcm4che2.tool.dcm2jpg.Dcm2Jpg;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weasis.dicom.util.FileUtil;
@@ -46,6 +47,7 @@ public class BuildManifestDcmFiles {
     private final File[] files;
     private final List<Patient> patientList;
     private final Map<File, SOPInstance> dicomMap;
+    private final Map<SOPInstance, File> dicomMapRev;
     private final Map<File, Series> thumbnailMap;
 
     public BuildManifestDcmFiles(File[] files, boolean recursive) {
@@ -53,6 +55,7 @@ public class BuildManifestDcmFiles {
         this.recursive = recursive;
         this.patientList = new ArrayList<Patient>();
         this.dicomMap = new HashMap<File, SOPInstance>();
+        this.dicomMapRev = new HashMap<SOPInstance, File>();
         this.thumbnailMap = new HashMap<File, Series>();
     }
 
@@ -64,12 +67,17 @@ public class BuildManifestDcmFiles {
         return dicomMap;
     }
 
+    public Map<SOPInstance, File> getDicomMapRev() {
+        return dicomMapRev;
+    }
+
     public List<Patient> getPatientList() {
         if (files == null || files.length == 0) {
             return null;
         }
         patientList.clear();
         dicomMap.clear();
+        dicomMapRev.clear();
         addSelectionAndnotify(files, true);
         return patientList;
     }
@@ -163,6 +171,7 @@ public class BuildManifestDcmFiles {
                 sop.setInstanceNumber(dcm.getString(Tag.InstanceNumber));
                 s.addSOPInstance(sop);
                 dicomMap.put(file, sop);
+                dicomMapRev.put(sop, file);
             }
         } catch (Exception e) {
             // TODO record problem?
@@ -173,19 +182,35 @@ public class BuildManifestDcmFiles {
         return;
     }
 
+    public static void buildThumbnail(File dicom, File thumbnail, int maxSize, int quality) {
+        if (dicom.canRead() && thumbnail.canWrite()) {
+            Dcm2Jpg dcm2jpg = new Dcm2Jpg();
+            dcm2jpg.setImageQuality(quality);
+            dcm2jpg.setMaxSize(maxSize);
+
+            long t1 = System.currentTimeMillis();
+            try {
+                dcm2jpg.convert(dicom, thumbnail);
+                LOGGER.info("Build thumbnail {} in {} s.", thumbnail.getName(),
+                    (System.currentTimeMillis() - t1) / 1000f);
+            } catch (IOException e) {
+                LOGGER.error("Cannot build thumbnail", e);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         for (String string : args) {
             buildManifest(new File(string));
-
         }
-
     }
 
     public static void buildManifest(File file) {
-        File tmpDir = new File(System.getProperty("java.io.tmpdir", ""), FileUtil.nameWithoutExtension(file.getName()));
+        File tmpDir = new File(System.getProperty("java.io.tmpdir", ""));
         File dicoms = null;
         if (FileUtil.isZipFile(file)) {
-            dicoms = tmpDir;
+            dicoms = new File(tmpDir, FileUtil.nameWithoutExtension(file.getName()));
+            ;
             FileUtil.unzip(file, dicoms);
         } else {
             // Should be a DICOM file
@@ -198,15 +223,25 @@ public class BuildManifestDcmFiles {
             for (Patient patient : patients) {
                 for (Study study : patient.getStudies()) {
                     for (Series series : study.getSeriesList()) {
-                        // TODO build thumbnail
+                        ArrayList<SOPInstance> list = series.getSopInstancesList();
+                        if (list.size() > 0) {
+                            series.sortByInstanceNumber();
+                            SOPInstance uid = list.get(list.size() / 2);
+                            if (uid != null) {
+                                File thumb = null;
+                                try {
+                                    thumb = File.createTempFile("thumb", ".jpg", tmpDir);
 
-                        // File thumb = null;
-                        // try {
-                        // thumb = File.createTempFile("thumb", ".jpg");
-                        // } catch (IOException e) {
-                        // e.printStackTrace();
-                        // }
-                        // thumMap.put(thumb, series);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                File dicomFile = dicomReader.getDicomMapRev().get(uid);
+                                if (dicomFile != null && thumb != null) {
+                                    buildThumbnail(dicomFile, thumb, 256, 75);
+                                    thumMap.put(thumb, series);
+                                }
+                            }
+                        }
                     }
                 }
             }

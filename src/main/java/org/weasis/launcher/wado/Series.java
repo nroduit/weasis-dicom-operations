@@ -108,6 +108,23 @@ public class Series implements XmlDescription {
         return sopInstancesList;
     }
 
+    public void sortByInstanceNumber() {
+        Collections.sort(sopInstancesList, new Comparator<SOPInstance>() {
+
+            public int compare(SOPInstance o1, SOPInstance o2) {
+                int nubmer1 = 0;
+                int nubmer2 = 0;
+                try {
+                    nubmer1 = Integer.parseInt(o1.getInstanceNumber());
+                    nubmer2 = Integer.parseInt(o2.getInstanceNumber());
+                } catch (NumberFormatException e) {
+                }
+
+                return (nubmer1 < nubmer2 ? -1 : (nubmer1 == nubmer2 ? 0 : 1));
+            }
+        });
+    }
+
     public String toXml() {
         StringBuffer result = new StringBuffer();
         if (seriesInstanceUID != null) {
@@ -123,20 +140,7 @@ public class Series implements XmlDescription {
             TagUtil
                 .addXmlAttribute(TagW.WadoCompressionRate, wadoCompression < 1 ? null : "" + wadoCompression, result);
             result.append(">");
-            Collections.sort(sopInstancesList, new Comparator<SOPInstance>() {
-
-                public int compare(SOPInstance o1, SOPInstance o2) {
-                    int nubmer1 = 0;
-                    int nubmer2 = 0;
-                    try {
-                        nubmer1 = Integer.parseInt(o1.getInstanceNumber());
-                        nubmer2 = Integer.parseInt(o2.getInstanceNumber());
-                    } catch (NumberFormatException e) {
-                    }
-
-                    return (nubmer1 < nubmer2 ? -1 : (nubmer1 == nubmer2 ? 0 : 1));
-                }
-            });
+            sortByInstanceNumber();
             for (SOPInstance s : sopInstancesList) {
                 result.append(s.toXml());
             }
