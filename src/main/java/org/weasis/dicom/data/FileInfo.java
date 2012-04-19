@@ -27,6 +27,7 @@ public final class FileInfo {
     private String seriesDesc;
     private String patientID;
     private Date studyDate;
+    private Date seriesDate;
     private int error = 0;
 
     public FileInfo(File file, String aetSource) {
@@ -83,6 +84,10 @@ public final class FileInfo {
     }
 
     public void setState(int state) {
+        // when the state progress, reset the error counter.
+        if (state > this.state) {
+            error = 0;
+        }
         this.state = state;
     }
 
@@ -104,6 +109,14 @@ public final class FileInfo {
 
     public String getStudyDesc() {
         return studyDesc;
+    }
+
+    public Date getSeriesDate() {
+        return seriesDate;
+    }
+
+    public void setSeriesDate(Date seriesDate) {
+        this.seriesDate = seriesDate;
     }
 
     public Date getStudyDate() {
@@ -153,4 +166,5 @@ public final class FileInfo {
             return DoubleFormat.format(totalSizeSent / KB) + " KB";
         }
     }
+
 }
