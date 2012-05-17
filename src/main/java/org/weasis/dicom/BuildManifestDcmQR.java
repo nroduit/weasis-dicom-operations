@@ -345,6 +345,8 @@ public class BuildManifestDcmQR {
         dcmqr.setCFind(true);
         dcmqr.setCGet(false);
         dcmqr.setQueryLevel(level);
+        // Add the default return keys for the selected query level
+        dcmqr.addDefReturnKeys();
         dcmqr.setRelationQR(relationQR);
         // Manifest fields
         for (int i = 1; i < matchingKeys.length; i++, i++) {
