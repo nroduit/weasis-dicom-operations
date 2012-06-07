@@ -42,7 +42,16 @@ public class BuildManifestDcmQR {
         if (patientID == null || patientID.trim().equals("")) {
             return null;
         }
-        String[] matchingKeys = { Integer.toHexString(Tag.PatientID), patientID };
+        String[] matchingKeys;
+        int beginIndex = patientID.indexOf("^^^");
+        // IssuerOfPatientID filter ( syntax like in HL7 with extension^^^root)
+        if (beginIndex >= 0) {
+            matchingKeys =
+                new String[] { Integer.toHexString(Tag.PatientID), patientID.substring(0, beginIndex),
+                    Integer.toHexString(Tag.IssuerOfPatientID), patientID.substring(beginIndex + 3) };
+        } else {
+            matchingKeys = new String[] { Integer.toHexString(Tag.PatientID), patientID };
+        }
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientBirthDate),
                 Integer.toHexString(Tag.PatientSex), Integer.toHexString(Tag.ReferringPhysicianName),
