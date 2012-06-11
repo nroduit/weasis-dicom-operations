@@ -27,6 +27,7 @@ public class Patient implements XmlDescription {
     private static Logger logger = LoggerFactory.getLogger(Patient.class);
 
     private final String patientID;
+    private String issuerOfPatientID = null;
     private String patientName = null;
     private String patientBirthDate = null;
     private String patientBirthTime = null;
@@ -34,11 +35,26 @@ public class Patient implements XmlDescription {
     private final List<Study> studiesList;
 
     public Patient(String patientID) {
+        this(patientID, null);
+    }
+
+    public Patient(String patientID, String issuerOfPatientID) {
         if (patientID == null) {
             throw new IllegalArgumentException("PaientID cannot be null!");
         }
         this.patientID = patientID;
+        this.issuerOfPatientID = issuerOfPatientID;
         studiesList = new ArrayList<Study>();
+    }
+
+    public boolean hasSameUniqueID(String patientID, String issuerOfPatientID) {
+        if (this.patientID.equals(patientID)) {
+            if ((this.issuerOfPatientID == null && issuerOfPatientID == null)
+                || (this.issuerOfPatientID != null && this.issuerOfPatientID.equals(issuerOfPatientID))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getPatientID() {
@@ -110,6 +126,7 @@ public class Patient implements XmlDescription {
             result.append("\n<" + TagW.DICOM_LEVEL.Patient.name() + " ");
 
             TagUtil.addXmlAttribute(TagW.PatientID, patientID, result);
+            TagUtil.addXmlAttribute(TagW.IssuerOfPatientID, issuerOfPatientID, result);
             TagUtil.addXmlAttribute(TagW.PatientName, patientName, result);
             TagUtil.addXmlAttribute(TagW.PatientBirthDate, patientBirthDate, result);
             TagUtil.addXmlAttribute(TagW.PatientBirthTime, patientBirthTime, result);

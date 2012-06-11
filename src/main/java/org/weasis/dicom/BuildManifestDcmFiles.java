@@ -106,13 +106,14 @@ public class BuildManifestDcmFiles {
     }
 
     private Patient getPatient(final DicomObject dcm) throws Exception {
-        String uid = dcm.getString(Tag.PatientID, "Unknown");
+        String id = dcm.getString(Tag.PatientID, "Unknown");
+        String ispid = dcm.getString(Tag.IssuerOfPatientID);
         for (Patient p : patientList) {
-            if (p.getPatientID().equals(uid)) {
+            if (p.hasSameUniqueID(id, ispid)) {
                 return p;
             }
         }
-        Patient p = new Patient(uid);
+        Patient p = new Patient(id, ispid);
         p.setPatientName(dcm.getString(Tag.PatientName, "Unknown"));
         p.setPatientBirthDate(dcm.getString(Tag.PatientBirthDate));
         // p.setPatientBirthTime(patientDataset.getString(Tag.PatientBirthTime));

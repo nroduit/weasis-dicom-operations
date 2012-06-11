@@ -253,13 +253,14 @@ public class BuildManifestDcmQR {
         if (patientDataset == null) {
             throw new IllegalArgumentException("patientDataset cannot be null");
         }
-        String uid = patientDataset.getString(Tag.PatientID);
+        String id = patientDataset.getString(Tag.PatientID, "Unknown");
+        String ispid = patientDataset.getString(Tag.IssuerOfPatientID);
         for (Patient p : patientList) {
-            if (p.getPatientID().equals(uid)) {
+            if (p.hasSameUniqueID(id, ispid)) {
                 return p;
             }
         }
-        Patient p = new Patient(uid);
+        Patient p = new Patient(id, ispid);
         p.setPatientName(patientDataset.getString(Tag.PatientName));
         p.setPatientBirthDate(patientDataset.getString(Tag.PatientBirthDate));
         // p.setPatientBirthTime(patientDataset.getString(Tag.PatientBirthTime));
