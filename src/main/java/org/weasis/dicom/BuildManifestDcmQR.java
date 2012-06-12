@@ -12,6 +12,7 @@ package org.weasis.dicom;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.dcm4che2.data.DicomObject;
@@ -42,6 +43,11 @@ public class BuildManifestDcmQR {
         if (patientID == null || patientID.trim().equals("")) {
             return null;
         }
+
+        String[] returnKeys =
+            { Integer.toHexString(Tag.IssuerOfPatientID), Integer.toHexString(Tag.PatientName),
+                Integer.toHexString(Tag.PatientBirthDate), Integer.toHexString(Tag.PatientSex),
+                Integer.toHexString(Tag.ReferringPhysicianName), Integer.toHexString(Tag.StudyDescription) };
         String[] matchingKeys;
         int beginIndex = patientID.indexOf("^^^");
         // IssuerOfPatientID filter ( syntax like in HL7 with extension^^^root)
@@ -49,13 +55,11 @@ public class BuildManifestDcmQR {
             matchingKeys =
                 new String[] { Integer.toHexString(Tag.PatientID), patientID.substring(0, beginIndex),
                     Integer.toHexString(Tag.IssuerOfPatientID), patientID.substring(beginIndex + 3) };
+            returnKeys = Arrays.copyOfRange(returnKeys, 1, returnKeys.length);
         } else {
             matchingKeys = new String[] { Integer.toHexString(Tag.PatientID), patientID };
         }
-        String[] returnKeys =
-            { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.IssuerOfPatientID),
-                Integer.toHexString(Tag.PatientBirthDate), Integer.toHexString(Tag.PatientSex),
-                Integer.toHexString(Tag.ReferringPhysicianName), Integer.toHexString(Tag.StudyDescription) };
+
         List<DicomObject> studies =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.STUDY, true, matchingKeys, returnKeys);
         List<Patient> patientList = new ArrayList<Patient>();
