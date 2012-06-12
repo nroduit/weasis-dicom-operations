@@ -211,7 +211,6 @@ public class BuildManifestDcmFiles {
         File dicoms = null;
         if (FileUtil.isZipFile(file)) {
             dicoms = new File(tmpDir, FileUtil.nameWithoutExtension(file.getName()));
-            ;
             FileUtil.unzip(file, dicoms);
         } else {
             // Should be a DICOM file
@@ -238,7 +237,7 @@ public class BuildManifestDcmFiles {
                                 }
                                 File dicomFile = dicomReader.getDicomMapRev().get(uid);
                                 if (dicomFile != null && thumb != null) {
-                                    buildThumbnail(dicomFile, thumb, 256, 75);
+                                    BuildManifestDcmFiles.buildThumbnail(dicomFile, thumb, 256, 75);
                                     thumMap.put(thumb, series);
                                 }
                             }

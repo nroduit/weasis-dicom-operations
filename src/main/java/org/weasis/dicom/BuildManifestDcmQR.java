@@ -53,20 +53,18 @@ public class BuildManifestDcmQR {
             matchingKeys = new String[] { Integer.toHexString(Tag.PatientID), patientID };
         }
         String[] returnKeys =
-            { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientBirthDate),
-                Integer.toHexString(Tag.PatientSex), Integer.toHexString(Tag.ReferringPhysicianName),
-                Integer.toHexString(Tag.StudyDescription) };
+            { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.IssuerOfPatientID),
+                Integer.toHexString(Tag.PatientBirthDate), Integer.toHexString(Tag.PatientSex),
+                Integer.toHexString(Tag.ReferringPhysicianName), Integer.toHexString(Tag.StudyDescription) };
         List<DicomObject> studies =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.STUDY, true, matchingKeys, returnKeys);
         List<Patient> patientList = new ArrayList<Patient>();
         if (studies != null) {
-            Patient patient = null;
-            if (studies.size() > 0) {
-                patient = getPatient(patientList, studies.get(0));
-            }
             for (DicomObject studyDataSet : studies) {
                 String studyInstanceUID = studyDataSet.getString(Tag.StudyInstanceUID);
                 if (studyInstanceUID != null && !"".equals(studyInstanceUID.trim())) {
+                    // Get patient from each study in case IssuerOfPatientID is different
+                    Patient patient = getPatient(patientList, studyDataSet);
                     Study study = getStudy(patient, studyDataSet);
                     List<DicomObject> series =
                         query(nodeSource, null, callingAet, QueryRetrieveLevel.SERIES, true,
@@ -122,8 +120,9 @@ public class BuildManifestDcmQR {
         int tag) throws Exception {
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientID),
-                Integer.toHexString(Tag.PatientBirthDate), Integer.toHexString(Tag.PatientSex),
-                Integer.toHexString(Tag.ReferringPhysicianName), Integer.toHexString(Tag.StudyDescription) };
+                Integer.toHexString(Tag.IssuerOfPatientID), Integer.toHexString(Tag.PatientBirthDate),
+                Integer.toHexString(Tag.PatientSex), Integer.toHexString(Tag.ReferringPhysicianName),
+                Integer.toHexString(Tag.StudyDescription) };
         List<DicomObject> studies =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.STUDY, true, matchingKeys, returnKeys);
         List<Patient> patientList = new ArrayList<Patient>();
@@ -177,11 +176,11 @@ public class BuildManifestDcmQR {
         String[] matchingKeys = { Integer.toHexString(Tag.SeriesInstanceUID), seriesInstanceUID };
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientID),
-                Integer.toHexString(Tag.PatientBirthDate), Integer.toHexString(Tag.PatientSex),
-                Integer.toHexString(Tag.StudyDate), Integer.toHexString(Tag.StudyTime),
-                Integer.toHexString(Tag.AccessionNumber), Integer.toHexString(Tag.ReferringPhysicianName),
-                Integer.toHexString(Tag.StudyDescription), Integer.toHexString(Tag.SeriesDescription),
-                Integer.toHexString(Tag.StudyInstanceUID) };
+                Integer.toHexString(Tag.IssuerOfPatientID), Integer.toHexString(Tag.PatientBirthDate),
+                Integer.toHexString(Tag.PatientSex), Integer.toHexString(Tag.StudyDate),
+                Integer.toHexString(Tag.StudyTime), Integer.toHexString(Tag.AccessionNumber),
+                Integer.toHexString(Tag.ReferringPhysicianName), Integer.toHexString(Tag.StudyDescription),
+                Integer.toHexString(Tag.SeriesDescription), Integer.toHexString(Tag.StudyInstanceUID) };
 
         List<DicomObject> series =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.SERIES, true, matchingKeys, returnKeys);
@@ -221,13 +220,13 @@ public class BuildManifestDcmQR {
         String[] matchingKeys = { Integer.toHexString(Tag.SOPInstanceUID), sopInstanceUID };
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientID),
-                Integer.toHexString(Tag.PatientBirthDate), Integer.toHexString(Tag.PatientSex),
-                Integer.toHexString(Tag.StudyDate), Integer.toHexString(Tag.StudyTime),
-                Integer.toHexString(Tag.AccessionNumber), Integer.toHexString(Tag.Modality),
-                Integer.toHexString(Tag.ReferringPhysicianName), Integer.toHexString(Tag.StudyDescription),
-                Integer.toHexString(Tag.SeriesDescription), Integer.toHexString(Tag.StudyInstanceUID),
-                Integer.toHexString(Tag.SeriesInstanceUID), Integer.toHexString(Tag.StudyID),
-                Integer.toHexString(Tag.SeriesNumber) };
+                Integer.toHexString(Tag.IssuerOfPatientID), Integer.toHexString(Tag.PatientBirthDate),
+                Integer.toHexString(Tag.PatientSex), Integer.toHexString(Tag.StudyDate),
+                Integer.toHexString(Tag.StudyTime), Integer.toHexString(Tag.AccessionNumber),
+                Integer.toHexString(Tag.Modality), Integer.toHexString(Tag.ReferringPhysicianName),
+                Integer.toHexString(Tag.StudyDescription), Integer.toHexString(Tag.SeriesDescription),
+                Integer.toHexString(Tag.StudyInstanceUID), Integer.toHexString(Tag.SeriesInstanceUID),
+                Integer.toHexString(Tag.StudyID), Integer.toHexString(Tag.SeriesNumber) };
         List<Patient> patientList = new ArrayList<Patient>();
         List<DicomObject> instances =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.IMAGE, true, matchingKeys, returnKeys);
