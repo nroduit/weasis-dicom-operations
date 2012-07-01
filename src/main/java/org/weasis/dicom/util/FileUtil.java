@@ -29,26 +29,35 @@ import java.util.zip.ZipFile;
 
 import javax.imageio.stream.ImageInputStream;
 
-public class FileUtil {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public final class FileUtil {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
+
+    public static final int FILE_BUFFER = 4096;
+
+    private FileUtil() {
+    }
 
     public static void safeClose(final Closeable object) {
-        try {
-            if (object != null) {
+        if (object != null) {
+            try {
                 object.close();
+            } catch (IOException e) {
+                LOGGER.debug(e.getMessage());
             }
-        } catch (IOException e) {
-            // Do nothing
         }
     }
 
     public static void safeClose(ImageInputStream stream) {
-        try {
-            if (stream != null) {
+        if (stream != null) {
+            try {
                 stream.flush();
                 stream.close();
+            } catch (IOException e) {
+                LOGGER.debug(e.getMessage());
             }
-        } catch (IOException e) {
-            // Do nothing
         }
     }
 
@@ -63,11 +72,12 @@ public class FileUtil {
             }
         }
 
-        // The directory is now empty so delete it
+        // DIR: The directory is now empty so delete it
+        // FILE: Delete the file
         return dir.delete();
     }
 
-    public static final void deleteDirectoryContents(final File dir) {
+    public static void deleteDirectoryContents(final File dir) {
         if ((dir == null) || !dir.isDirectory()) {
             return;
         }
@@ -78,47 +88,27 @@ public class FileUtil {
                     deleteDirectoryContents(f);
                 } else {
                     try {
-                        f.delete();
+                        if (!f.delete()) {
+                            LOGGER.info("Cannot delete {}", f.getPath());
+                        }
                     } catch (Exception e) {
-                        // Do nothing, wait next start to delete it
+                        LOGGER.error(e.getMessage());
                     }
                 }
             }
         }
     }
 
-    public static boolean isWriteable(File file) {
-        if (file.exists()) {
-            // Check the existing file.
-            if (!file.canWrite()) {
-                return false;
-            }
-        } else {
+    public static void prepareToWriteFile(File file) throws IOException {
+        if (!file.exists()) {
             // Check the file that doesn't exist yet.
-            // Create a new file. The file is writeable if
-            // the creation succeeds.
-            try {
-                String parentDir = file.getParent();
-                if (parentDir != null) {
-                    File outputDir = new File(file.getParent());
-                    if (outputDir.exists() == false) {
-                        // Output directory doesn't exist, so create it.
-                        outputDir.mkdirs();
-                    } else {
-                        if (outputDir.isDirectory() == false) {
-                            // File, which have a same name as the output directory, exists.
-                            // Create output directory.
-                            outputDir.mkdirs();
-                        }
-                    }
-                }
-
-                file.createNewFile();
-            } catch (IOException ioe) {
-                return false;
+            // Create a new file. The file is writable if the creation succeeds.
+            File outputDir = file.getParentFile();
+            // necessary to check exists otherwise mkdirs() is false when dir exists
+            if (outputDir != null && !outputDir.exists() && !outputDir.mkdirs()) {
+                throw new IOException("Cannot write parent directory of " + file.getPath());
             }
         }
-        return true;
     }
 
     public static String nameWithoutExtension(String fn) {
@@ -154,14 +144,14 @@ public class FileUtil {
         try {
             input = url.openStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
             return 0;
         }
         FileOutputStream outputStream;
         try {
             outputStream = new FileOutputStream(outFilename);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
             return 0;
         }
         return writeFile(input, outputStream);
@@ -174,11 +164,11 @@ public class FileUtil {
      *         interruption
      */
     public static int writeFile(InputStream inputStream, OutputStream out) {
-        if (inputStream == null && out == null) {
+        if (inputStream == null || out == null) {
             return 0;
         }
         try {
-            byte[] buf = new byte[4096];
+            byte[] buf = new byte[FILE_BUFFER];
             int offset;
             while ((offset = inputStream.read(buf)) > 0) {
                 out.write(buf, 0, offset);
@@ -187,7 +177,7 @@ public class FileUtil {
         } catch (InterruptedIOException e) {
             return e.bytesTransferred;
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Error when writing file", e);
             return 0;
         }
 
@@ -204,9 +194,9 @@ public class FileUtil {
             try {
                 fileStream = new FileInputStream(propsFile);
                 p.load(fileStream);
-
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("Error when reading properties: {}", propsFile);
+                LOGGER.error(e.getMessage());
             } finally {
                 FileUtil.safeClose(fileStream);
             }
@@ -220,10 +210,9 @@ public class FileUtil {
             try {
                 fout = new FileOutputStream(propsFile);
                 props.store(fout, comments);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("Error when writing properties: {}", propsFile);
+                LOGGER.error(e.getMessage());
             } finally {
                 FileUtil.safeClose(fout);
             }
@@ -236,19 +225,22 @@ public class FileUtil {
             byte[] magicDirEnd = { 0x50, 0x4b, 0x03, 0x04 };
             FileInputStream inputStream = null;
             try {
-                inputStream = new FileInputStream(file);
-                byte[] buffer = new byte[4];
+                try {
+                    inputStream = new FileInputStream(file);
+                    byte[] buffer = new byte[4];
 
-                if ((inputStream.read(buffer)) == 4) {
-                    for (int k = 0; k < magicDirEnd.length; k++) {
-                        if (buffer[k] != magicDirEnd[k]) {
-                            return false;
+                    if ((inputStream.read(buffer)) == 4) {
+                        for (int k = 0; k < magicDirEnd.length; k++) {
+                            if (buffer[k] != magicDirEnd[k]) {
+                                return false;
+                            }
                         }
+                        isZip = true;
                     }
-                    isZip = true;
+                } catch (IOException e) {
+                    LOGGER.error("Error when reading zip file: {}", file);
+                    LOGGER.error(e.getMessage());
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             } finally {
                 FileUtil.safeClose(inputStream);
             }
@@ -258,11 +250,13 @@ public class FileUtil {
 
     public static void unzip(File file, File outputDir) {
         if (file != null && outputDir != null) {
-            int BUFFER = 2048;
-            byte buffer[] = new byte[BUFFER];
-            outputDir.mkdirs();
+
+            byte buffer[] = new byte[FILE_BUFFER];
 
             ZipFile zipFile = null;
+            BufferedInputStream bis = null;
+            BufferedOutputStream bos = null;
+
             try {
                 zipFile = new ZipFile(file);
                 Enumeration<? extends ZipEntry> e = zipFile.entries();
@@ -271,17 +265,18 @@ public class FileUtil {
                     ZipEntry entry = e.nextElement();
 
                     File destinationPath = new File(outputDir, entry.getName());
-                    destinationPath.getParentFile().mkdirs();
+                    if (!destinationPath.getParentFile().mkdirs()) {
+                        throw new IOException("Cannot write zip file: " + destinationPath.getAbsolutePath());
+                    }
 
                     if (entry.isDirectory()) {
                         continue;
                     } else {
-                        BufferedInputStream bis = new BufferedInputStream(zipFile.getInputStream(entry));
-                        FileOutputStream fos = new FileOutputStream(destinationPath);
-                        BufferedOutputStream bos = new BufferedOutputStream(fos, BUFFER);
+                        bis = new BufferedInputStream(zipFile.getInputStream(entry));
+                        bos = new BufferedOutputStream(new FileOutputStream(destinationPath), FILE_BUFFER);
 
                         int b;
-                        while ((b = bis.read(buffer, 0, BUFFER)) != -1) {
+                        while ((b = bis.read(buffer, 0, FILE_BUFFER)) != -1) {
                             bos.write(buffer, 0, b);
                         }
                         bos.close();
@@ -290,9 +285,11 @@ public class FileUtil {
 
                 }
 
-            } catch (Exception e) {
-                System.err.println("Error opening zip file" + e);
+            } catch (IOException e) {
+                LOGGER.error("Error when unzip file: {}", file, e);
             } finally {
+                FileUtil.safeClose(bis);
+                FileUtil.safeClose(bos);
                 try {
                     if (zipFile != null) {
                         zipFile.close();
