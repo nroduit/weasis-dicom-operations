@@ -50,11 +50,17 @@ public class BuildManifestDcmQR {
                 Integer.toHexString(Tag.ReferringPhysicianName), Integer.toHexString(Tag.StudyDescription) };
         String[] matchingKeys;
         int beginIndex = patientID.indexOf("^^^");
+        int offset = 3;
         // IssuerOfPatientID filter ( syntax like in HL7 with extension^^^root)
+        if (beginIndex == -1) {
+            // if patientID has been encrypted
+            beginIndex = patientID.indexOf("%5E%5E%5E");
+            offset = 9;
+        }
         if (beginIndex >= 0) {
             matchingKeys =
                 new String[] { Integer.toHexString(Tag.PatientID), patientID.substring(0, beginIndex),
-                    Integer.toHexString(Tag.IssuerOfPatientID), patientID.substring(beginIndex + 3) };
+                    Integer.toHexString(Tag.IssuerOfPatientID), patientID.substring(beginIndex + offset) };
             returnKeys = Arrays.copyOfRange(returnKeys, 1, returnKeys.length);
         } else {
             matchingKeys = new String[] { Integer.toHexString(Tag.PatientID), patientID };

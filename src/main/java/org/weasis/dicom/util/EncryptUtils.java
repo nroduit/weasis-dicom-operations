@@ -25,7 +25,11 @@ public class EncryptUtils {
             throw new IllegalArgumentException("message or key arguments cannot be null!");
         }
         String result = xorMessage(message.trim(), key);
-        return Base64.encodeBytes(result.getBytes());
+        try {
+            return Base64.encodeBytes(result.getBytes(), Base64.URL_SAFE);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static String xorMessage(String message, String key) {
@@ -62,9 +66,9 @@ public class EncryptUtils {
         }
         String result = null;
         try {
-            result = new String(Base64.decode(message.trim()));
+            result = new String(Base64.decode(message.trim(), Base64.URL_SAFE));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IllegalStateException(e);
         }
         return unXorMessage(result, key);
     }
@@ -86,6 +90,7 @@ public class EncryptUtils {
             newmsg[i] = (char) (mChars[i % ml] ^ kChars[i % kl]);
             if (newmsg[i] == START) {
                 cutMessage = i;
+                break;
             }
         }
         if (cutMessage > 0) {
