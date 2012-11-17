@@ -12,13 +12,14 @@ package org.weasis.dicom;
 
 public class EncryptionTLS {
 
-    public static final String[] TLS_AND_SSLv2 = { "TLSv1", "SSLv3", "SSLv2Hello" };
-
     public static final String[] TLS1 = { "TLSv1" };
     public static final String[] SSL3 = { "SSLv3" };
-    public static final String[] NO_TLS1 = { "SSLv3", "SSLv2Hello" };
-    public static final String[] NO_SSL2 = { "TLSv1", "SSLv3" };
-    public static final String[] NO_SSL3 = { "TLSv1", "SSLv2Hello" };
+    public static final String[] SSL2 = { "SSLv2Hello" };
+
+    public static final String[] TLS_AND_SSLv2 = { TLS1[0], SSL3[0], SSL2[0] };
+    public static final String[] NO_TLS1 = { SSL3[0], SSL2[0] };
+    public static final String[] NO_SSL2 = { TLS1[0], SSL3[0] };
+    public static final String[] NO_SSL3 = { TLS1[0], SSL2[0] };
 
     public static enum TLS {
         NO_ENCRYPTION, TLS_3DSE, TLS_AES

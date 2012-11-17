@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,7 @@ public class Patient implements XmlDescription {
 
     public void setPatientSex(String patientSex) {
         if (patientSex != null) {
-            patientSex = patientSex.toUpperCase();
+            patientSex = patientSex.toUpperCase(Locale.getDefault());
             patientSex = patientSex.startsWith("M") ? "M" : patientSex.startsWith("F") ? "F" : "O";
         }
         this.patientSex = patientSex;

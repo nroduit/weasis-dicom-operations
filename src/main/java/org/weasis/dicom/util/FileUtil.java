@@ -225,22 +225,20 @@ public final class FileUtil {
             byte[] magicDirEnd = { 0x50, 0x4b, 0x03, 0x04 };
             FileInputStream inputStream = null;
             try {
-                try {
-                    inputStream = new FileInputStream(file);
-                    byte[] buffer = new byte[4];
+                inputStream = new FileInputStream(file);
+                byte[] buffer = new byte[4];
 
-                    if ((inputStream.read(buffer)) == 4) {
-                        for (int k = 0; k < magicDirEnd.length; k++) {
-                            if (buffer[k] != magicDirEnd[k]) {
-                                return false;
-                            }
+                if ((inputStream.read(buffer)) == 4) {
+                    for (int k = 0; k < magicDirEnd.length; k++) {
+                        if (buffer[k] != magicDirEnd[k]) {
+                            return false;
                         }
-                        isZip = true;
                     }
-                } catch (IOException e) {
-                    LOGGER.error("Error when reading zip file: {}", file);
-                    LOGGER.error(e.getMessage());
+                    isZip = true;
                 }
+            } catch (IOException e) {
+                LOGGER.error("Error when reading zip file: {}", file);
+                LOGGER.error(e.getMessage());
             } finally {
                 FileUtil.safeClose(inputStream);
             }
@@ -282,9 +280,7 @@ public final class FileUtil {
                         bos.close();
                         bis.close();
                     }
-
                 }
-
             } catch (IOException e) {
                 LOGGER.error("Error when unzip file: {}", file, e);
             } finally {
@@ -298,7 +294,6 @@ public final class FileUtil {
                     // Do nothing
                 }
             }
-
         }
     }
 }

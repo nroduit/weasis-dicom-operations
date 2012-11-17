@@ -51,7 +51,7 @@ public class BuildManifestDcmFiles {
     private final Map<File, Series> thumbnailMap;
 
     public BuildManifestDcmFiles(File[] files, boolean recursive) {
-        this.files = files;
+        this.files = files.clone();
         this.recursive = recursive;
         this.patientList = new ArrayList<Patient>();
         this.dicomMap = new HashMap<File, SOPInstance>();
