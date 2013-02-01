@@ -44,8 +44,9 @@ public class WadoQuery {
      * @throws WadoQueryException
      *             if an error occurs
      */
-    public WadoQuery(List<Patient> patients, WadoParameters wadoParameters, String dbCharset) throws WadoQueryException {
-        if (patients == null || patients.size() == 0) {
+    public WadoQuery(List<Patient> patients, WadoParameters wadoParameters, String dbCharset, boolean acceptNoImage)
+        throws WadoQueryException {
+        if ((patients == null || patients.size() == 0) && !acceptNoImage) {
             throw new WadoQueryException(WadoQueryException.NO_PATIENTS_LIST);
         } else {
             Collections.sort(patients, new Comparator<Patient>() {
@@ -82,8 +83,10 @@ public class WadoQuery {
             }
             logger.debug("Xml header [{}]", wadoQuery.toString());
 
-            for (int i = 0; i < patients.size(); i++) {
-                wadoQuery.append(patients.get(i).toXml());
+            if (patients != null) {
+                for (int i = 0; i < patients.size(); i++) {
+                    wadoQuery.append(patients.get(i).toXml());
+                }
             }
 
             wadoQuery.append("\n</");
