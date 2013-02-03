@@ -300,7 +300,7 @@ public class BuildManifestDcmFiles {
                 // }
                 // }
                 // }
-                WadoQuery wadoQuery = new WadoQuery(patients, wado, "utf-8");
+                WadoQuery wadoQuery = new WadoQuery(patients, wado, "utf-8", false);
 
                 // Set gzip compression to the manifest
                 stream = new FileOutputStream(manifestFile);

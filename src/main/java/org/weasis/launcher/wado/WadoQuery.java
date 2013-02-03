@@ -41,19 +41,23 @@ public class WadoQuery {
      * 
      * @param patients
      *            a list of patients
+     * @param acceptNoImage
      * @throws WadoQueryException
      *             if an error occurs
      */
-    public WadoQuery(List<Patient> patients, WadoParameters wadoParameters, String dbCharset) throws WadoQueryException {
-        if (patients == null || patients.size() == 0) {
+    public WadoQuery(List<Patient> patients, WadoParameters wadoParameters, String dbCharset, boolean acceptNoImage)
+        throws WadoQueryException {
+        if ((patients == null || patients.size() == 0) && !acceptNoImage) {
             throw new WadoQueryException(WadoQueryException.NO_PATIENTS_LIST);
         } else {
-            Collections.sort(patients, new Comparator<Patient>() {
+            if (patients != null) {
+                Collections.sort(patients, new Comparator<Patient>() {
 
-                public int compare(Patient o1, Patient o2) {
-                    return o1.getPatientName().compareTo(o2.getPatientName());
-                }
-            });
+                    public int compare(Patient o1, Patient o2) {
+                        return o1.getPatientName().compareTo(o2.getPatientName());
+                    }
+                });
+            }
             wadoQuery = new StringBuffer();
             wadoQuery.append("<?xml version=\"1.0\" encoding=\"" + dbCharset + "\" ?>");
             wadoQuery.append("\n<");
@@ -82,8 +86,10 @@ public class WadoQuery {
             }
             logger.debug("Xml header [{}]", wadoQuery.toString());
 
-            for (int i = 0; i < patients.size(); i++) {
-                wadoQuery.append(patients.get(i).toXml());
+            if (patients != null) {
+                for (int i = 0; i < patients.size(); i++) {
+                    wadoQuery.append(patients.get(i).toXml());
+                }
             }
 
             wadoQuery.append("\n</");
