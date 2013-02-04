@@ -5,7 +5,7 @@
 	<artifactId>weasis-dicom-operations</artifactId>
 	<packaging>jar</packaging>
 	<name>Weasis DICOM library</name>
-	<version>0.7.2-SNAPSHOT</version>
+	<version>0.7.2</version>
 	<scm>
 		<connection>scm:git:git@github.com:nroduit/weasis-dicom-operations.git</connection>
 		<developerConnection>scm:git:https://nroduit@github.com/nroduit/weasis-dicom-operations.git</developerConnection>
