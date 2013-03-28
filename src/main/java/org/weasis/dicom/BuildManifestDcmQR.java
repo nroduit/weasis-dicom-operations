@@ -12,7 +12,6 @@ package org.weasis.dicom;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.dcm4che2.data.DicomObject;
@@ -22,6 +21,7 @@ import org.dcm4che2.tool.dcmqr.DcmQR.QueryRetrieveLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weasis.dicom.EncryptionTLS.TLS;
+import org.weasis.dicom.util.FileUtil;
 import org.weasis.launcher.wado.Patient;
 import org.weasis.launcher.wado.SOPInstance;
 import org.weasis.launcher.wado.Series;
@@ -61,7 +61,7 @@ public class BuildManifestDcmQR {
             matchingKeys =
                 new String[] { Integer.toHexString(Tag.PatientID), patientID.substring(0, beginIndex),
                     Integer.toHexString(Tag.IssuerOfPatientID), patientID.substring(beginIndex + offset) };
-            returnKeys = Arrays.copyOfRange(returnKeys, 1, returnKeys.length);
+            returnKeys = FileUtil.copyOfRange(returnKeys, 1, returnKeys.length);
         } else {
             matchingKeys = new String[] { Integer.toHexString(Tag.PatientID), patientID };
         }

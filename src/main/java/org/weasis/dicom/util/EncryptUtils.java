@@ -1,7 +1,6 @@
 package org.weasis.dicom.util;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import org.weasis.launcher.wado.xml.Base64;
 
@@ -94,8 +93,9 @@ public class EncryptUtils {
             }
         }
         if (cutMessage > 0) {
-            newmsg = Arrays.copyOfRange(newmsg, 0, cutMessage);
+            newmsg = FileUtil.copyOfRange(newmsg, 0, cutMessage);
         }
         return new String(newmsg);
     }
+
 }

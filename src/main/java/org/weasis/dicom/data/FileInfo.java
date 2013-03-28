@@ -13,6 +13,7 @@ package org.weasis.dicom.data;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.HashMap;
 
 public final class FileInfo {
     public static final int KB = 1024;
@@ -25,12 +26,12 @@ public final class FileInfo {
 
     private final File file;
     private final String aetSource;
+
     private String cuid;
     private String iuid;
     private String tsuid;
     private long fmiEndPos;
-    private int state;
-    private int dicomStatus;
+
     private String studyUID;
     private String studyDesc;
     private String seriesUID;
@@ -38,7 +39,8 @@ public final class FileInfo {
     private String patientID;
     private Date studyDate;
     private Date seriesDate;
-    private int error = 0;
+
+    private HashMap<String, DestinationInfo> status = new HashMap<String, DestinationInfo>(2);
 
     public FileInfo(File file, String aetSource) {
         if (file == null || aetSource == null) {
@@ -46,15 +48,63 @@ public final class FileInfo {
         }
         this.file = file;
         this.aetSource = aetSource;
-        state = SOURCE;
     }
 
-    public void addError() {
-        error++;
+    private DestinationInfo getDestinationInfo(String destination, boolean addDestination) {
+        DestinationInfo info = null;
+
+        if (destination != null) {
+            info = status.get(destination);
+            if (info == null && addDestination) {
+                status.put(destination, new DestinationInfo());
+            }
+        }
+        return info;
     }
 
-    public int getNbError() {
-        return error;
+    public void addError(String destination) {
+        DestinationInfo info = getDestinationInfo(destination, true);
+        if (info != null) {
+            info.addError();
+        }
+    }
+
+    public int getNbError(String destination) {
+        DestinationInfo info = getDestinationInfo(destination, false);
+        if (info != null) {
+            return info.getNbError();
+        }
+        return 0;
+    }
+
+    public int getState(String destination) {
+        DestinationInfo info = getDestinationInfo(destination, false);
+        if (info != null) {
+            return info.getState();
+        }
+        return 0;
+    }
+
+    public void setState(int state, String destination) {
+        DestinationInfo info = getDestinationInfo(destination, true);
+        if (info != null) {
+            info.setState(state);
+        }
+    }
+
+    public int getDicomStatus(String destination) {
+        DestinationInfo info = getDestinationInfo(destination, false);
+        if (info != null) {
+            return info.getDicomStatus();
+        }
+        return 0;
+    }
+
+    public void setDicomStatus(int dicomStatus, String destination) {
+        DestinationInfo info = getDestinationInfo(destination, true);
+        if (info != null) {
+            info.setDicomStatus(dicomStatus);
+        }
     }
 
     public String getCuid() {
@@ -87,26 +137,6 @@ public final class FileInfo {
 
     public void setFmiEndPos(long fmiEndPos) {
         this.fmiEndPos = fmiEndPos;
-    }
-
-    public int getState() {
-        return state;
-    }
-
-    public void setState(int state) {
-        // when the state progress, reset the error counter.
-        if (state > this.state) {
-            error = 0;
-        }
-        this.state = state;
-    }
-
-    public int getDicomStatus() {
-        return dicomStatus;
-    }
-
-    public void setDicomStatus(int dicomStatus) {
-        this.dicomStatus = dicomStatus;
     }
 
     public String getStudyUID() {
@@ -177,4 +207,42 @@ public final class FileInfo {
         }
     }
 
+    static class DestinationInfo {
+        private int state;
+        private int dicomStatus;
+        private int error;
+
+        private DestinationInfo() {
+            this.state = SOURCE;
+            this.error = 0;
+        }
+
+        public int getState() {
+            return state;
+        }
+
+        public void setState(int state) {
+            // when the state progress, reset the error counter.
+            if (state > this.state) {
+                error = 0;
+            }
+            this.state = state;
+        }
+
+        public void addError() {
+            error++;
+        }
+
+        public int getNbError() {
+            return error;
+        }
+
+        public int getDicomStatus() {
+            return dicomStatus;
+        }
+
+        public void setDicomStatus(int dicomStatus) {
+            this.dicomStatus = dicomStatus;
+        }
+    }
 }

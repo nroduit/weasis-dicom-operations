@@ -988,7 +988,7 @@ public class DcmSnd extends StorageCommitmentService {
             info.setTsuid(in.getTransferSyntax().uid());
             info.setFmiEndPos(in.getEndOfFileMetaInfoPosition());
         } catch (IOException e) {
-            info.addError();
+            info.addError(remoteAE.getAETitle());
             e.printStackTrace();
             return;
         } finally {
@@ -1172,7 +1172,7 @@ public class DcmSnd extends StorageCommitmentService {
         DicomElement refSOPSq = actionInfo.putSequence(Tag.ReferencedSOPSequence);
         for (int i = 0, n = files.size(); i < n; ++i) {
             FileInfo info = files.get(i);
-            if (info.getState() == FileInfo.FORWARDED) {
+            if (info.getState(remoteAE.getAETitle()) == FileInfo.FORWARDED) {
                 BasicDicomObject refSOP = new BasicDicomObject();
                 refSOP.putString(Tag.ReferencedSOPClassUID, VR.UI, info.getCuid());
                 refSOP.putString(Tag.ReferencedSOPInstanceUID, VR.UI, info.getIuid());
@@ -1351,10 +1351,10 @@ public class DcmSnd extends StorageCommitmentService {
         int status = cmd.getInt(Tag.Status);
         int msgId = cmd.getInt(Tag.MessageIDBeingRespondedTo);
         FileInfo info = files.get(msgId - 1);
-        info.setDicomStatus(status);
+        info.setDicomStatus(status, remoteAE.getAETitle());
         switch (status) {
             case 0:
-                info.setState(FileInfo.FORWARDED);
+                info.setState(FileInfo.FORWARDED, remoteAE.getAETitle());
                 totalSize += info.getFile().length();
                 ++filesSent;
                 System.out.print('.');
@@ -1362,7 +1362,7 @@ public class DcmSnd extends StorageCommitmentService {
             case 0xB000:
             case 0xB006:
             case 0xB007:
-                info.setState(FileInfo.FORWARDED);
+                info.setState(FileInfo.FORWARDED, remoteAE.getAETitle());
                 totalSize += info.getFile().length();
                 ++filesSent;
                 log.warn("Received RSP with Status " + StringUtils.shortToHex(status) + "H for " + info.getFile()
@@ -1372,8 +1372,8 @@ public class DcmSnd extends StorageCommitmentService {
                 String error = cmd.getString(Tag.ErrorComment);
                 if (error != null && error.equals("java.io.EOFException")) {
                     // Issue when the file is corrupted.
-                    info.setState(FileInfo.LOCAL);
-                    info.addError();
+                    info.setState(FileInfo.LOCAL, remoteAE.getAETitle());
+                    info.addError(remoteAE.getAETitle());
                 }
                 log.error("Received RSP with Status " + StringUtils.shortToHex(status) + "H for " + info.getFile()
                     + " - command: " + cmd.toString());
