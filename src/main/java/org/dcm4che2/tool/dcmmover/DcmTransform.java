@@ -79,6 +79,7 @@ class DcmTransform {
                             MovedDicomObject xformedObj = transform((MovedDicomObject) queuedObj);
                             log.debug(fn + "Passing the object to the Dicom Sender...");
                             dcmSnd.send(xformedObj);
+                            xformedObj.deleteFile();
                         }
                     }
                 } catch (DcmMoveException e) {
@@ -145,7 +146,6 @@ class DcmTransform {
                         + "]");
                 }
             }
-
             dcmObj.remove(newDcmElem.tag());
             dcmObj.add(newDcmElem);
         }

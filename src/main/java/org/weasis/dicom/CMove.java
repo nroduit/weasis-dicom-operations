@@ -29,6 +29,7 @@ import org.dcm4che2.tool.dcmqr.DcmQR;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.weasis.dicom.EncryptionTLS.TLS;
+import org.weasis.dicom.util.FileUtil;
 
 public class CMove {
     /*
@@ -258,6 +259,8 @@ public class CMove {
             }
             log.info(response.toString());
         }
+        // clean files older than 5 hours
+        FileUtil.deleteOldFiles(FileUtil.APP_TEMP_DIR);
         return true;
 
     }

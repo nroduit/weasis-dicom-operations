@@ -37,6 +37,30 @@ public final class FileUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 
     public static final int FILE_BUFFER = 4096;
+    public static final File APP_TEMP_DIR;
+
+    static {
+        String tempDir = System.getProperty("java.io.tmpdir");
+        File tdir;
+        if (tempDir == null || tempDir.length() == 1) {
+            String dir = System.getProperty("user.home", "");
+            tdir = new File(dir);
+        } else {
+            tdir = new File(tempDir);
+        }
+        APP_TEMP_DIR = new File(tdir, "dicom-" + System.getProperty("user.name", "tmp"));
+        try {
+            // Clean temp folder.
+            FileUtil.deleteDirectoryContents(APP_TEMP_DIR);
+        } catch (Exception e1) {
+        }
+        try {
+            APP_TEMP_DIR.mkdirs();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
     private FileUtil() {
     }
@@ -90,7 +114,31 @@ public final class FileUtil {
                 } else {
                     try {
                         if (!f.delete()) {
-                            LOGGER.info("Cannot delete {}", f.getPath());
+                            LOGGER.error("Cannot delete {}", f.getPath());
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage());
+                    }
+                }
+            }
+        }
+    }
+
+    public static void deleteOldFiles(File dir) {
+        if ((dir == null) || !dir.isDirectory()) {
+            return;
+        }
+        File[] filesAndDirs = dir.listFiles();
+        if (filesAndDirs != null) {
+            for (File f : filesAndDirs) {
+                if (f.isDirectory()) {
+                    deleteOldFiles(f);
+                }
+                // When the file is older than 5 hours, it can be deleted
+                else if ((System.currentTimeMillis() - f.lastModified()) > 18900000) {
+                    try {
+                        if (!f.delete()) {
+                            LOGGER.error("Cannot delete {}", f.getPath());
                         }
                     } catch (Exception e) {
                         LOGGER.error(e.getMessage());

@@ -3,14 +3,20 @@ package org.dcm4che2.tool.dcmmover;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 
+import org.dcm4che2.data.BasicDicomObject;
 import org.dcm4che2.data.DicomObject;
+import org.dcm4che2.data.Tag;
 import org.dcm4che2.data.UID;
 import org.dcm4che2.data.UIDDictionary;
 import org.dcm4che2.io.DicomInputStream;
+import org.dcm4che2.io.DicomOutputStream;
 import org.dcm4che2.net.Association;
 import org.dcm4che2.net.CommandUtils;
 import org.dcm4che2.net.Device;
@@ -19,20 +25,22 @@ import org.dcm4che2.net.NetworkApplicationEntity;
 import org.dcm4che2.net.NetworkConnection;
 import org.dcm4che2.net.NewThreadExecutor;
 import org.dcm4che2.net.PDVInputStream;
+import org.dcm4che2.net.Status;
 import org.dcm4che2.net.TransferCapability;
 import org.dcm4che2.net.service.StorageService;
 import org.dcm4che2.net.service.VerificationService;
+import org.dcm4che2.util.CloseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.weasis.dicom.util.FileUtil;
 
 /**
  * Provides DICOM Storage SCP capability for the DcmMover.
  * 
  * @author gpotter (gcac96@gmail.com)
  * @version $Revision$
- * @see org.dcm4che2.tool.DcmRcv Based on original work by gunter
- *      zeilinger(gunterze@gmail.com). Original version - Revision: 4892 $
- *      $Date: 2007-08-21 09:36:10 +0200 (Tue, 21 Aug 2007)
+ * @see org.dcm4che2.tool.DcmRcv Based on original work by gunter zeilinger(gunterze@gmail.com). Original version -
+ *      Revision: 4892 $ $Date: 2007-08-21 09:36:10 +0200 (Tue, 21 Aug 2007)
  */
 class DcmRcv extends StorageService {
 
@@ -40,103 +48,42 @@ class DcmRcv extends StorageService {
 
     private BlockingQueue<MovedDicomObject> movedObjQueue;
 
-    private static final String[] NON_RETIRED_LE_TS = {
-        UID.JPEGLSLossless,
-        UID.JPEGLossless,
-        UID.JPEGLosslessNonHierarchical14,
-        UID.JPEG2000LosslessOnly,
-        UID.DeflatedExplicitVRLittleEndian,
-        UID.RLELossless,
-        UID.ExplicitVRLittleEndian,
-        UID.ImplicitVRLittleEndian,
-        UID.JPEGBaseline1,
-        UID.JPEGExtended24,
-        UID.JPEGLSLossyNearLossless,
-        UID.JPEG2000,
-        UID.MPEG2, };
+    private static final String[] NON_RETIRED_LE_TS = { UID.JPEGLSLossless, UID.JPEGLossless,
+        UID.JPEGLosslessNonHierarchical14, UID.JPEG2000LosslessOnly, UID.DeflatedExplicitVRLittleEndian,
+        UID.RLELossless, UID.ExplicitVRLittleEndian, UID.ImplicitVRLittleEndian, UID.JPEGBaseline1, UID.JPEGExtended24,
+        UID.JPEGLSLossyNearLossless, UID.JPEG2000, UID.MPEG2, };
 
-    private static final String[] CUIDS = {
-        UID.BasicStudyContentNotificationSOPClassRetired,
-        UID.StoredPrintStorageSOPClassRetired,
-        UID.HardcopyGrayscaleImageStorageSOPClassRetired,
-        UID.HardcopyColorImageStorageSOPClassRetired,
-        UID.ComputedRadiographyImageStorage,
-        UID.DigitalXRayImageStorageForPresentation,
-        UID.DigitalXRayImageStorageForProcessing,
-        UID.DigitalMammographyXRayImageStorageForPresentation,
-        UID.DigitalMammographyXRayImageStorageForProcessing,
-        UID.DigitalIntraOralXRayImageStorageForPresentation,
-        UID.DigitalIntraOralXRayImageStorageForProcessing,
-        UID.StandaloneModalityLUTStorageRetired,
-        UID.EncapsulatedPDFStorage,
-        UID.StandaloneVOILUTStorageRetired,
-        UID.GrayscaleSoftcopyPresentationStateStorageSOPClass,
-        UID.ColorSoftcopyPresentationStateStorageSOPClass,
-        UID.PseudoColorSoftcopyPresentationStateStorageSOPClass,
-        UID.BlendingSoftcopyPresentationStateStorageSOPClass,
-        UID.XRayAngiographicImageStorage,
-        UID.EnhancedXAImageStorage,
-        UID.XRayRadiofluoroscopicImageStorage,
-        UID.EnhancedXRFImageStorage,
-        UID.XRayAngiographicBiPlaneImageStorageRetired,
-        UID.PositronEmissionTomographyImageStorage,
-        UID.StandalonePETCurveStorageRetired,
-        UID.CTImageStorage,
-        UID.EnhancedCTImageStorage,
-        UID.NuclearMedicineImageStorage,
-        UID.UltrasoundMultiFrameImageStorageRetired,
-        UID.UltrasoundMultiFrameImageStorage,
-        UID.MRImageStorage,
-        UID.EnhancedMRImageStorage,
-        UID.MRSpectroscopyStorage,
-        UID.RTImageStorage,
-        UID.RTDoseStorage,
-        UID.RTStructureSetStorage,
-        UID.RTBeamsTreatmentRecordStorage,
-        UID.RTPlanStorage,
-        UID.RTBrachyTreatmentRecordStorage,
-        UID.RTTreatmentSummaryRecordStorage,
-        UID.NuclearMedicineImageStorageRetired,
-        UID.UltrasoundImageStorageRetired,
-        UID.UltrasoundImageStorage,
-        UID.RawDataStorage,
-        UID.SpatialRegistrationStorage,
-        UID.SpatialFiducialsStorage,
-        UID.RealWorldValueMappingStorage,
-        UID.SecondaryCaptureImageStorage,
-        UID.MultiFrameSingleBitSecondaryCaptureImageStorage,
-        UID.MultiFrameGrayscaleByteSecondaryCaptureImageStorage,
-        UID.MultiFrameGrayscaleWordSecondaryCaptureImageStorage,
-        UID.MultiFrameTrueColorSecondaryCaptureImageStorage,
-        UID.VLImageStorageTrialRetired,
-        UID.VLEndoscopicImageStorage,
-        UID.VideoEndoscopicImageStorage,
-        UID.VLMicroscopicImageStorage,
-        UID.VideoMicroscopicImageStorage,
-        UID.VLSlideCoordinatesMicroscopicImageStorage,
-        UID.VLPhotographicImageStorage,
-        UID.VideoPhotographicImageStorage,
-        UID.OphthalmicPhotography8BitImageStorage,
-        UID.OphthalmicPhotography16BitImageStorage,
-        UID.StereometricRelationshipStorage,
-        UID.VLMultiFrameImageStorageTrialRetired,
-        UID.StandaloneOverlayStorageRetired,
-        UID.BasicTextSRStorage,
-        UID.EnhancedSRStorage,
-        UID.ComprehensiveSRStorage,
-        UID.ProcedureLogStorage,
-        UID.MammographyCADSRStorage,
-        UID.KeyObjectSelectionDocumentStorage,
-        UID.ChestCADSRStorage,
-        UID.StandaloneCurveStorageRetired,
-        UID.TwelveLeadECGWaveformStorage,
-        UID.GeneralECGWaveformStorage,
-        UID.AmbulatoryECGWaveformStorage,
-        UID.HemodynamicWaveformStorage,
-        UID.CardiacElectrophysiologyWaveformStorage,
-        UID.BasicVoiceAudioWaveformStorage,
-        UID.HangingProtocolStorage,
-        UID.SiemensCSANonImageStorage };
+    private static final String[] CUIDS = { UID.BasicStudyContentNotificationSOPClassRetired,
+        UID.StoredPrintStorageSOPClassRetired, UID.HardcopyGrayscaleImageStorageSOPClassRetired,
+        UID.HardcopyColorImageStorageSOPClassRetired, UID.ComputedRadiographyImageStorage,
+        UID.DigitalXRayImageStorageForPresentation, UID.DigitalXRayImageStorageForProcessing,
+        UID.DigitalMammographyXRayImageStorageForPresentation, UID.DigitalMammographyXRayImageStorageForProcessing,
+        UID.DigitalIntraOralXRayImageStorageForPresentation, UID.DigitalIntraOralXRayImageStorageForProcessing,
+        UID.StandaloneModalityLUTStorageRetired, UID.EncapsulatedPDFStorage, UID.StandaloneVOILUTStorageRetired,
+        UID.GrayscaleSoftcopyPresentationStateStorageSOPClass, UID.ColorSoftcopyPresentationStateStorageSOPClass,
+        UID.PseudoColorSoftcopyPresentationStateStorageSOPClass, UID.BlendingSoftcopyPresentationStateStorageSOPClass,
+        UID.XRayAngiographicImageStorage, UID.EnhancedXAImageStorage, UID.XRayRadiofluoroscopicImageStorage,
+        UID.EnhancedXRFImageStorage, UID.XRayAngiographicBiPlaneImageStorageRetired,
+        UID.PositronEmissionTomographyImageStorage, UID.StandalonePETCurveStorageRetired, UID.CTImageStorage,
+        UID.EnhancedCTImageStorage, UID.NuclearMedicineImageStorage, UID.UltrasoundMultiFrameImageStorageRetired,
+        UID.UltrasoundMultiFrameImageStorage, UID.MRImageStorage, UID.EnhancedMRImageStorage,
+        UID.MRSpectroscopyStorage, UID.RTImageStorage, UID.RTDoseStorage, UID.RTStructureSetStorage,
+        UID.RTBeamsTreatmentRecordStorage, UID.RTPlanStorage, UID.RTBrachyTreatmentRecordStorage,
+        UID.RTTreatmentSummaryRecordStorage, UID.NuclearMedicineImageStorageRetired, UID.UltrasoundImageStorageRetired,
+        UID.UltrasoundImageStorage, UID.RawDataStorage, UID.SpatialRegistrationStorage, UID.SpatialFiducialsStorage,
+        UID.RealWorldValueMappingStorage, UID.SecondaryCaptureImageStorage,
+        UID.MultiFrameSingleBitSecondaryCaptureImageStorage, UID.MultiFrameGrayscaleByteSecondaryCaptureImageStorage,
+        UID.MultiFrameGrayscaleWordSecondaryCaptureImageStorage, UID.MultiFrameTrueColorSecondaryCaptureImageStorage,
+        UID.VLImageStorageTrialRetired, UID.VLEndoscopicImageStorage, UID.VideoEndoscopicImageStorage,
+        UID.VLMicroscopicImageStorage, UID.VideoMicroscopicImageStorage, UID.VLSlideCoordinatesMicroscopicImageStorage,
+        UID.VLPhotographicImageStorage, UID.VideoPhotographicImageStorage, UID.OphthalmicPhotography8BitImageStorage,
+        UID.OphthalmicPhotography16BitImageStorage, UID.StereometricRelationshipStorage,
+        UID.VLMultiFrameImageStorageTrialRetired, UID.StandaloneOverlayStorageRetired, UID.BasicTextSRStorage,
+        UID.EnhancedSRStorage, UID.ComprehensiveSRStorage, UID.ProcedureLogStorage, UID.MammographyCADSRStorage,
+        UID.KeyObjectSelectionDocumentStorage, UID.ChestCADSRStorage, UID.StandaloneCurveStorageRetired,
+        UID.TwelveLeadECGWaveformStorage, UID.GeneralECGWaveformStorage, UID.AmbulatoryECGWaveformStorage,
+        UID.HemodynamicWaveformStorage, UID.CardiacElectrophysiologyWaveformStorage,
+        UID.BasicVoiceAudioWaveformStorage, UID.HangingProtocolStorage, UID.SiemensCSANonImageStorage };
 
     private Executor executor = new NewThreadExecutor("DCMRCV");
 
@@ -233,8 +180,9 @@ class DcmRcv extends StorageService {
     public void initTransferCapability() {
         TransferCapability[] tc = new TransferCapability[CUIDS.length + 1];
         tc[0] = new TransferCapability(UID.VerificationSOPClass, DcmMover.ONLY_IVRLE_TS, TransferCapability.SCP);
-        for (int i = 0; i < CUIDS.length; i++)
+        for (int i = 0; i < CUIDS.length; i++) {
             tc[i + 1] = new TransferCapability(CUIDS[i], tsuids, TransferCapability.SCP);
+        }
         ae.setTransferCapability(tc);
     }
 
@@ -256,13 +204,12 @@ class DcmRcv extends StorageService {
     }
 
     /**
-     * Overwrite {@link StorageService#cstore} to send delayed C-STORE RSP by
-     * separate Thread, so reading of following received C-STORE RQs from the
-     * open association is not blocked.
+     * Overwrite {@link StorageService#cstore} to send delayed C-STORE RSP by separate Thread, so reading of following
+     * received C-STORE RQs from the open association is not blocked.
      */
     @Override
     public void cstore(final Association as, final int pcid, DicomObject rq, PDVInputStream dataStream, String tsuid)
-            throws DicomServiceException, IOException {
+        throws DicomServiceException, IOException {
         final String fn = "cstore: ";
 
         log.debug(fn + "Handling a C-Store...");
@@ -287,22 +234,50 @@ class DcmRcv extends StorageService {
     }
 
     @Override
-    protected void onCStoreRQ(Association as, int pcid, DicomObject rq, PDVInputStream dataStream, String tsuid, DicomObject rsp)
-            throws IOException, DicomServiceException {
+    protected void onCStoreRQ(Association as, int pcid, DicomObject rq, PDVInputStream dataStream, String tsuid,
+        DicomObject rsp) throws IOException, DicomServiceException {
         final String fn = "onCStoreRQ: ";
-
         log.debug(fn + "Handling a C-Store request. Adding the received DICOM object to the queue.");
 
-        DicomInputStream dis = new DicomInputStream(new BufferedInputStream(dataStream), tsuid);
-        DicomObject dcmObj = dis.readDicomObject();
+        MovedDicomObject movedDcmObj = null;
 
-        MovedDicomObject movedDcmObj = new MovedDicomObject(dcmObj, tsuid);
+        // Only keep in memory 5 files
+        if (movedObjQueue.size() > 5) {
+            String cuid = rq.getString(Tag.AffectedSOPClassUID);
+            String iuid = rq.getString(Tag.AffectedSOPInstanceUID);
+            File file = new File(FileUtil.APP_TEMP_DIR, iuid + ".part");
+            try {
+                DicomOutputStream dos =
+                    new DicomOutputStream(new BufferedOutputStream(new FileOutputStream(file), 1024));
+                try {
+                    BasicDicomObject fmi = new BasicDicomObject();
+                    fmi.initFileMetaInformation(cuid, iuid, tsuid);
+                    dos.writeFileMetaInformation(fmi);
+                    dataStream.copyTo(dos);
+                } finally {
+                    CloseUtils.safeClose(dos);
+                }
+            } catch (IOException e) {
+                if (file != null) {
+                    file.delete();
+                }
+                throw new DicomServiceException(rq, Status.ProcessingFailure, e.getMessage());
+            }
 
-        objectsReceived++;
-
-        fireStudyObjectReceivedEvent(movedDcmObj);
-
-        movedObjQueue.add(movedDcmObj);
+            // Rename the file after it has been written.
+            if (file != null) {
+                File rename = new File(file.getParent(), iuid);
+                movedDcmObj = new MovedDicomObject(file.renameTo(rename) ? rename : file, tsuid, cuid, iuid);
+            }
+        } else {
+            DicomInputStream dis = new DicomInputStream(new BufferedInputStream(dataStream), tsuid);
+            movedDcmObj = new MovedDicomObject(dis.readDicomObject(), tsuid);
+        }
+        if (movedDcmObj != null) {
+            objectsReceived++;
+            fireStudyObjectReceivedEvent(movedDcmObj);
+            movedObjQueue.add(movedDcmObj);
+        }
     }
 
     public void logConfiguration(StringBuffer str) {

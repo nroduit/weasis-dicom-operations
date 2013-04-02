@@ -1,10 +1,14 @@
 package org.dcm4che2.tool.dcmmover;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
+import org.dcm4che2.io.DicomInputStream;
+import org.dcm4che2.util.CloseUtils;
 import org.dcm4che2.util.UIDUtils;
 
 /**
@@ -21,22 +25,27 @@ class MovedDicomObject {
 
     // The DICOM object being moved
     DicomObject dcmObj;
-
-    String tsUid;
-
-    String cUid;
-
-    String iUid;
+    File file;
+    final String tsUid;
+    final String cUid;
+    final String iUid;
 
     String newiUid; // if a new instance uid was generated it gets stored here
 
     String storageCommitFailedReason;
 
-    public MovedDicomObject(DicomObject dcmObj, String tsUid) {
+    public MovedDicomObject(DicomObject dcmObj, String tsuid) {
         this.dcmObj = dcmObj;
-        this.tsUid = tsUid;
-        cUid = (dcmObj == null) ? "" : dcmObj.getString(Tag.SOPClassUID);
-        iUid = (dcmObj == null) ? "" : dcmObj.getString(Tag.SOPInstanceUID);
+        this.tsUid = tsuid;
+        this.cUid = (dcmObj == null) ? "" : dcmObj.getString(Tag.SOPClassUID);
+        this.iUid = (dcmObj == null) ? "" : dcmObj.getString(Tag.SOPInstanceUID);
+    }
+
+    public MovedDicomObject(File file, String tsuid, String cuid, String iuid) {
+        this.file = file;
+        this.tsUid = tsuid;
+        this.cUid = cuid;
+        this.iUid = iuid;
     }
 
     /**
@@ -74,7 +83,30 @@ class MovedDicomObject {
         return storageCommitFailedReason;
     }
 
+    public void deleteFile() {
+        if (file != null) {
+            file.delete();
+        }
+    }
+
+    public File getFile() {
+        return file;
+    }
+
     public DicomObject getDicomObject() {
+        if (dcmObj == null && file != null) {
+            if (file.canRead()) {
+                DicomInputStream in = null;
+                try {
+                    in = new DicomInputStream(file);
+                    dcmObj = in.readDicomObject();
+                } catch (IOException e) {
+                    throw new RuntimeException();
+                } finally {
+                    CloseUtils.safeClose(in);
+                }
+            }
+        }
         return dcmObj;
     }
 
@@ -139,4 +171,5 @@ class MovedDicomObject {
         seriesUids.addChild(objectUids);
         return objectUids;
     }
+
 }
