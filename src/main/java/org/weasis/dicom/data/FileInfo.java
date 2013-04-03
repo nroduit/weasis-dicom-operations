@@ -1,12 +1,9 @@
 /*******************************************************************************
- * Copyright (c) 2012 Weasis Team.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
+ * Copyright (c) 2012 Weasis Team. All rights reserved. This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License v1.0 which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  * 
- * Contributors:
- *     Nicolas Roduit - initial API and implementation
+ * Contributors: Nicolas Roduit - initial API and implementation
  ******************************************************************************/
 package org.weasis.dicom.data;
 
@@ -16,233 +13,237 @@ import java.util.Date;
 import java.util.HashMap;
 
 public final class FileInfo {
-    public static final int KB = 1024;
-    public static final int MB = KB * KB;
-    public static final DecimalFormat DoubleFormat = new DecimalFormat("###0.##");
-    // State in the Gateway workflow from SOURCE to Destination
-    public static final int SOURCE = 50;
-    public static final int LOCAL = 100;
-    public static final int FORWARDED = 150;
 
-    private final File file;
-    private final String aetSource;
+	public static final int KB = 1024;
+	public static final int MB = KB * KB;
+	public static final DecimalFormat DoubleFormat = new DecimalFormat("###0.##");
+	// State in the Gateway workflow from SOURCE to Destination
+	public static final int SOURCE = 50;
+	public static final int LOCAL = 100;
+	public static final int FORWARDED = 150;
 
-    private String cuid;
-    private String iuid;
-    private String tsuid;
-    private long fmiEndPos;
+	private final File file;
+	private final String aetSource;
 
-    private String studyUID;
-    private String studyDesc;
-    private String seriesUID;
-    private String seriesDesc;
-    private String patientID;
-    private Date studyDate;
-    private Date seriesDate;
+	private String cuid;
+	private String iuid;
+	private String tsuid;
+	private long fmiEndPos;
 
-    private HashMap<String, DestinationInfo> status = new HashMap<String, DestinationInfo>(2);
+	private String studyUID;
+	private String studyDesc;
+	private String seriesUID;
+	private String seriesDesc;
+	private String patientID;
+	private Date studyDate;
+	private Date seriesDate;
 
-    public FileInfo(File file, String aetSource) {
-        if (file == null || aetSource == null) {
-            throw new RuntimeException("Null parameter");
-        }
-        this.file = file;
-        this.aetSource = aetSource;
-    }
+	private HashMap<String, DestinationInfo> status = new HashMap<String, DestinationInfo>(2);
 
-    private DestinationInfo getDestinationInfo(String destination, boolean addDestination) {
-        DestinationInfo info = null;
+	public FileInfo(File file, String aetSource) {
+		if (file == null || aetSource == null) {
+			throw new RuntimeException("Null parameter");
+		}
+		this.file = file;
+		this.aetSource = aetSource;
+	}
 
-        if (destination != null) {
-            info = status.get(destination);
-            if (info == null && addDestination) {
-                status.put(destination, new DestinationInfo());
-            }
-        }
-        return info;
-    }
+	private DestinationInfo getDestinationInfo(String destination, boolean addDestination) {
+		DestinationInfo info = null;
 
-    public void addError(String destination) {
-        DestinationInfo info = getDestinationInfo(destination, true);
-        if (info != null) {
-            info.addError();
-        }
-    }
+		if (destination != null) {
+			info = status.get(destination);
+			if (info == null && addDestination) {
+				info = new DestinationInfo();
+				status.put(destination, info);
+			}
+		}
+		return info;
+	}
 
-    public int getNbError(String destination) {
-        DestinationInfo info = getDestinationInfo(destination, false);
-        if (info != null) {
-            return info.getNbError();
-        }
-        return 0;
-    }
+	public void addError(String destination) {
+		DestinationInfo info = getDestinationInfo(destination, true);
+		if (info != null) {
+			info.addError();
+		}
+	}
 
-    public int getState(String destination) {
-        DestinationInfo info = getDestinationInfo(destination, false);
-        if (info != null) {
-            return info.getState();
-        }
-        return 0;
-    }
+	public int getNbError(String destination) {
+		DestinationInfo info = getDestinationInfo(destination, false);
+		if (info != null) {
+			return info.getNbError();
+		}
+		return 0;
+	}
 
-    public void setState(int state, String destination) {
-        DestinationInfo info = getDestinationInfo(destination, true);
-        if (info != null) {
-            info.setState(state);
-        }
-    }
+	public int getState(String destination) {
+		DestinationInfo info = getDestinationInfo(destination, false);
+		if (info != null) {
+			return info.getState();
+		}
+		return 0;
+	}
 
-    public int getDicomStatus(String destination) {
-        DestinationInfo info = getDestinationInfo(destination, false);
-        if (info != null) {
-            return info.getDicomStatus();
-        }
-        return 0;
-    }
+	public void setState(int state, String destination) {
+		DestinationInfo info = getDestinationInfo(destination, true);
+		if (info != null) {
+			info.setState(state);
+		}
+	}
 
-    public void setDicomStatus(int dicomStatus, String destination) {
-        DestinationInfo info = getDestinationInfo(destination, true);
-        if (info != null) {
-            info.setDicomStatus(dicomStatus);
-        }
-    }
+	public int getDicomStatus(String destination) {
+		DestinationInfo info = getDestinationInfo(destination, false);
+		if (info != null) {
+			return info.getDicomStatus();
+		}
+		return 0;
+	}
 
-    public String getCuid() {
-        return cuid;
-    }
+	public void setDicomStatus(int dicomStatus, String destination) {
+		DestinationInfo info = getDestinationInfo(destination, true);
+		if (info != null) {
+			info.setDicomStatus(dicomStatus);
+		}
+	}
 
-    public void setCuid(String cuid) {
-        this.cuid = cuid;
-    }
+	public String getCuid() {
+		return cuid;
+	}
 
-    public String getIuid() {
-        return iuid;
-    }
+	public void setCuid(String cuid) {
+		this.cuid = cuid;
+	}
 
-    public void setIuid(String iuid) {
-        this.iuid = iuid;
-    }
+	public String getIuid() {
+		return iuid;
+	}
 
-    public String getTsuid() {
-        return tsuid;
-    }
+	public void setIuid(String iuid) {
+		this.iuid = iuid;
+	}
 
-    public void setTsuid(String tsuid) {
-        this.tsuid = tsuid;
-    }
+	public String getTsuid() {
+		return tsuid;
+	}
 
-    public long getFmiEndPos() {
-        return fmiEndPos;
-    }
+	public void setTsuid(String tsuid) {
+		this.tsuid = tsuid;
+	}
 
-    public void setFmiEndPos(long fmiEndPos) {
-        this.fmiEndPos = fmiEndPos;
-    }
+	public long getFmiEndPos() {
+		return fmiEndPos;
+	}
 
-    public String getStudyUID() {
-        return studyUID;
-    }
+	public void setFmiEndPos(long fmiEndPos) {
+		this.fmiEndPos = fmiEndPos;
+	}
 
-    public void setStudyUID(String studyUID) {
-        this.studyUID = studyUID;
-    }
+	public String getStudyUID() {
+		return studyUID;
+	}
 
-    public String getStudyDesc() {
-        return studyDesc;
-    }
+	public void setStudyUID(String studyUID) {
+		this.studyUID = studyUID;
+	}
 
-    public Date getSeriesDate() {
-        return seriesDate;
-    }
+	public String getStudyDesc() {
+		return studyDesc;
+	}
 
-    public void setSeriesDate(Date seriesDate) {
-        this.seriesDate = seriesDate;
-    }
+	public Date getSeriesDate() {
+		return seriesDate;
+	}
 
-    public Date getStudyDate() {
-        return studyDate;
-    }
+	public void setSeriesDate(Date seriesDate) {
+		this.seriesDate = seriesDate;
+	}
 
-    public void setStudyDate(Date studyDate) {
-        this.studyDate = studyDate;
-    }
+	public Date getStudyDate() {
+		return studyDate;
+	}
 
-    public void setStudyDesc(String studyDesc) {
-        this.studyDesc = studyDesc;
-    }
+	public void setStudyDate(Date studyDate) {
+		this.studyDate = studyDate;
+	}
 
-    public String getSeriesUID() {
-        return seriesUID;
-    }
+	public void setStudyDesc(String studyDesc) {
+		this.studyDesc = studyDesc;
+	}
 
-    public void setSeriesUID(String seriesUID) {
-        this.seriesUID = seriesUID;
-    }
+	public String getSeriesUID() {
+		return seriesUID;
+	}
 
-    public String getSeriesDesc() {
-        return seriesDesc;
-    }
+	public void setSeriesUID(String seriesUID) {
+		this.seriesUID = seriesUID;
+	}
 
-    public void setSeriesDesc(String seriesDesc) {
-        this.seriesDesc = seriesDesc;
-    }
+	public String getSeriesDesc() {
+		return seriesDesc;
+	}
 
-    public String getPatientID() {
-        return patientID;
-    }
+	public void setSeriesDesc(String seriesDesc) {
+		this.seriesDesc = seriesDesc;
+	}
 
-    public void setPatientID(String patientID) {
-        this.patientID = patientID;
-    }
+	public String getPatientID() {
+		return patientID;
+	}
 
-    public File getFile() {
-        return file;
-    }
+	public void setPatientID(String patientID) {
+		this.patientID = patientID;
+	}
 
-    public static String getBytes(double totalSizeSent) {
-        if (totalSizeSent > MB) {
-            return DoubleFormat.format(totalSizeSent / MB) + " MB";
-        } else {
-            return DoubleFormat.format(totalSizeSent / KB) + " KB";
-        }
-    }
+	public File getFile() {
+		return file;
+	}
 
-    static class DestinationInfo {
-        private int state;
-        private int dicomStatus;
-        private int error;
+	public static String getBytes(double totalSizeSent) {
+		if (totalSizeSent > MB) {
+			return DoubleFormat.format(totalSizeSent / MB) + " MB";
+		}
+		else {
+			return DoubleFormat.format(totalSizeSent / KB) + " KB";
+		}
+	}
 
-        private DestinationInfo() {
-            this.state = SOURCE;
-            this.error = 0;
-        }
+	static class DestinationInfo {
 
-        public int getState() {
-            return state;
-        }
+		private int state;
+		private int dicomStatus;
+		private int error;
 
-        public void setState(int state) {
-            // when the state progress, reset the error counter.
-            if (state > this.state) {
-                error = 0;
-            }
-            this.state = state;
-        }
+		private DestinationInfo() {
+			this.state = SOURCE;
+			this.error = 0;
+		}
 
-        public void addError() {
-            error++;
-        }
+		public int getState() {
+			return state;
+		}
 
-        public int getNbError() {
-            return error;
-        }
+		public void setState(int state) {
+			// when the state progress, reset the error counter.
+			if (state > this.state) {
+				error = 0;
+			}
+			this.state = state;
+		}
 
-        public int getDicomStatus() {
-            return dicomStatus;
-        }
+		public void addError() {
+			error++;
+		}
 
-        public void setDicomStatus(int dicomStatus) {
-            this.dicomStatus = dicomStatus;
-        }
-    }
+		public int getNbError() {
+			return error;
+		}
+
+		public int getDicomStatus() {
+			return dicomStatus;
+		}
+
+		public void setDicomStatus(int dicomStatus) {
+			this.dicomStatus = dicomStatus;
+		}
+	}
 }
