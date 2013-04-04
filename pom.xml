@@ -6,6 +6,9 @@
 	<packaging>jar</packaging>
 	<name>Weasis DICOM library</name>
 	<version>0.7.4-SNAPSHOT</version>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<scm>
 		<connection>scm:git:git@github.com:nroduit/weasis-dicom-operations.git</connection>
 		<developerConnection>scm:git:https://nroduit@github.com/nroduit/weasis-dicom-operations.git</developerConnection>
