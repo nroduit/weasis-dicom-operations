@@ -38,8 +38,8 @@ public class BuildManifestDcmQR {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildManifestDcmQR.class);
 
-    public static List<Patient> buildFromPatientID(DicomNode nodeSource, String callingAet, String patientID)
-        throws Exception {
+    public static List<Patient> buildFromPatientID(final List<Patient> ptList, DicomNode nodeSource, String callingAet,
+        String patientID) throws Exception {
         if (patientID == null || patientID.trim().equals("")) {
             return null;
         }
@@ -68,7 +68,7 @@ public class BuildManifestDcmQR {
 
         List<DicomObject> studies =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.STUDY, true, matchingKeys, returnKeys);
-        List<Patient> patientList = new ArrayList<Patient>();
+        List<Patient> patientList = ptList == null ? new ArrayList<Patient>() : ptList;
         if (studies != null) {
             for (DicomObject studyDataSet : studies) {
                 String studyInstanceUID = studyDataSet.getString(Tag.StudyInstanceUID);
@@ -108,26 +108,26 @@ public class BuildManifestDcmQR {
         return patientList;
     }
 
-    public static List<Patient> buildFromStudyInstanceUID(DicomNode nodeSource, String callingAet,
-        String studyInstanceUID) throws Exception {
+    public static List<Patient> buildFromStudyInstanceUID(final List<Patient> ptList, DicomNode nodeSource,
+        String callingAet, String studyInstanceUID) throws Exception {
         if (studyInstanceUID == null || studyInstanceUID.trim().equals("")) {
             return null;
         }
         String[] matchingKeys = { Integer.toHexString(Tag.StudyInstanceUID), studyInstanceUID };
-        return buildFromStudylevel(nodeSource, callingAet, matchingKeys, Tag.StudyInstanceUID);
+        return buildFromStudylevel(ptList, nodeSource, callingAet, matchingKeys, Tag.StudyInstanceUID);
     }
 
-    public static List<Patient> buildFromStudyAccessionNumber(DicomNode nodeSource, String callingAet,
-        String accessionNumber) throws Exception {
+    public static List<Patient> buildFromStudyAccessionNumber(final List<Patient> ptList, DicomNode nodeSource,
+        String callingAet, String accessionNumber) throws Exception {
         if (accessionNumber == null || accessionNumber.trim().equals("")) {
             return null;
         }
         String[] matchingKeys = { Integer.toHexString(Tag.AccessionNumber), accessionNumber };
-        return buildFromStudylevel(nodeSource, callingAet, matchingKeys, Tag.AccessionNumber);
+        return buildFromStudylevel(ptList, nodeSource, callingAet, matchingKeys, Tag.AccessionNumber);
     }
 
-    private static List<Patient> buildFromStudylevel(DicomNode nodeSource, String callingAet, String[] matchingKeys,
-        int tag) throws Exception {
+    private static List<Patient> buildFromStudylevel(final List<Patient> ptList, DicomNode nodeSource,
+        String callingAet, String[] matchingKeys, int tag) throws Exception {
         String[] returnKeys =
             { Integer.toHexString(Tag.PatientName), Integer.toHexString(Tag.PatientID),
                 Integer.toHexString(Tag.IssuerOfPatientID), Integer.toHexString(Tag.PatientBirthDate),
@@ -135,7 +135,7 @@ public class BuildManifestDcmQR {
                 Integer.toHexString(Tag.StudyDescription) };
         List<DicomObject> studies =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.STUDY, true, matchingKeys, returnKeys);
-        List<Patient> patientList = new ArrayList<Patient>();
+        List<Patient> patientList = ptList == null ? new ArrayList<Patient>() : ptList;
         if (studies != null && studies.size() > 0) {
             Patient patient = getPatient(patientList, studies.get(0));
             for (DicomObject studyDataSet : studies) {
@@ -178,8 +178,8 @@ public class BuildManifestDcmQR {
         return patientList;
     }
 
-    public static List<Patient> buildFromSeriesInstanceUID(DicomNode nodeSource, String callingAet,
-        String seriesInstanceUID) throws Exception {
+    public static List<Patient> buildFromSeriesInstanceUID(final List<Patient> ptList, DicomNode nodeSource,
+        String callingAet, String seriesInstanceUID) throws Exception {
         if (seriesInstanceUID == null || seriesInstanceUID.trim().equals("")) {
             return null;
         }
@@ -194,7 +194,7 @@ public class BuildManifestDcmQR {
 
         List<DicomObject> series =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.SERIES, true, matchingKeys, returnKeys);
-        List<Patient> patientList = new ArrayList<Patient>();
+        List<Patient> patientList = ptList == null ? new ArrayList<Patient>() : ptList;
         if (series != null && series.size() > 0) {
             DicomObject dataset = series.get(0);
             Patient patient = getPatient(patientList, dataset);
@@ -222,8 +222,8 @@ public class BuildManifestDcmQR {
         return patientList;
     }
 
-    public static List<Patient> buildFromSopInstanceUID(DicomNode nodeSource, String callingAet, String sopInstanceUID)
-        throws Exception {
+    public static List<Patient> buildFromSopInstanceUID(final List<Patient> ptList, DicomNode nodeSource,
+        String callingAet, String sopInstanceUID) throws Exception {
         if (sopInstanceUID == null || sopInstanceUID.trim().equals("")) {
             return null;
         }
@@ -237,7 +237,7 @@ public class BuildManifestDcmQR {
                 Integer.toHexString(Tag.StudyDescription), Integer.toHexString(Tag.SeriesDescription),
                 Integer.toHexString(Tag.StudyInstanceUID), Integer.toHexString(Tag.SeriesInstanceUID),
                 Integer.toHexString(Tag.StudyID), Integer.toHexString(Tag.SeriesNumber) };
-        List<Patient> patientList = new ArrayList<Patient>();
+        List<Patient> patientList = ptList == null ? new ArrayList<Patient>() : ptList;
         List<DicomObject> instances =
             query(nodeSource, null, callingAet, QueryRetrieveLevel.IMAGE, true, matchingKeys, returnKeys);
         if (instances != null && instances.size() > 0) {
