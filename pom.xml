@@ -5,7 +5,7 @@
 	<artifactId>weasis-dicom-operations</artifactId>
 	<packaging>jar</packaging>
 	<name>Weasis DICOM library</name>
-	<version>0.7.4-SNAPSHOT</version>
+	<version>0.7.4</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
