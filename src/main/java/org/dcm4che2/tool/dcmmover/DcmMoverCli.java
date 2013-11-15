@@ -373,7 +373,7 @@ public class DcmMoverCli {
                 psd.setPatientId(value);
                 break;
             case Tag.PatientBirthDate: {
-                DateFormat fmt = new SimpleDateFormat("yyyyMMDD");
+                DateFormat fmt = new SimpleDateFormat("yyyyMMdd");
                 try {
                     psd.setPatientBirthDate(fmt.parse(value));
                 } catch (java.text.ParseException e) {
